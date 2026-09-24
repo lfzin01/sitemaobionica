@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simulador | Mão Robótica Arduino · TCC</title>
+<meta name="description" content="Simulador interativo de mão robótica com Arduino Uno + servo SG90." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* ============ TOKENS ============ */
+:root,
+:root[data-theme="light"] {
+  --bg-0:#FFFBEB; --bg-card:#FFF; --bg-glass:rgba(255,255,255,.86);
+  --border:#E2E8F0; --border-strong:rgba(11,105,163,.28); --border-soft:rgba(15,23,42,.06);
+  --text-1:#0F172A; --text-2:#475569; --text-3:#94A3B8;
+  --accent:#FF8A00; --accent-hover:#E67600; --accent-soft:rgba(255,138,0,.10);
+  --inst:#0B69A3; --inst-dark:#075985; --inst-soft:rgba(11,105,163,.08);
+  --green:#16A34A; --green-soft:rgba(22,163,74,.10);
+  --warn:#D97706; --danger:#DC2626;
+  --shadow-sm:0 2px 8px rgba(15,23,42,.06);
+  --shadow-md:0 10px 30px rgba(15,23,42,.10);
+  --shadow-lg:0 20px 45px rgba(15,23,42,.14);
+  --visor-bg:radial-gradient(ellipse 80% 60% at 50% 22%,rgba(11,105,163,.10),transparent 60%),
+             radial-gradient(ellipse 70% 50% at 50% 92%,rgba(255,138,0,.10),transparent 60%),
+             linear-gradient(180deg,rgba(255,255,255,.94),rgba(240,253,244,.94));
+  --visor-grid:rgba(11,105,163,.10);
+  --hand-bone-1:#2A5580; --hand-bone-2:#122E4D; --hand-bone-3:#0A1F35;
+  --hand-palm-1:#223D5E; --hand-palm-2:#0A1B30;
+  --hand-edge:#0EA5E9; --hand-led:#22D3EE; --hand-led-closed:#FF8A00;
+  --font-ui:'Plus Jakarta Sans',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --r-sm:8px; --r-md:14px; --r-lg:20px;
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  --smooth:cubic-bezier(.16,1,.3,1);
+}
+
+/* ============================================================
+   TEMA ESCURO — PRETO PURO (ALINHADO COM O INDEX)
+   ============================================================ */
+:root[data-theme="dark"] {
+  --bg-0:#000000; --bg-card:#0F0F0F; --bg-glass:rgba(15,15,15,.85);
+  --border:rgba(255,255,255,.08);
+  --border-strong:rgba(255,154,46,.32);
+  --border-soft:rgba(255,255,255,.05);
+  --text-1:#F5F5F5; --text-2:#A0A0A0; --text-3:#8A8A8A;
+  --accent:#FF9A2E; --accent-hover:#FFB057; --accent-soft:rgba(255,154,46,.15);
+  --inst:#4A9FD4; --inst-dark:#2C7BB0; --inst-soft:rgba(74,159,212,.12);
+  --green:#34D399; --green-soft:rgba(52,211,153,.14);
+  --warn:#FBBF24; --danger:#F87171;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.4);
+  --shadow-md:0 14px 40px rgba(0,0,0,.55);
+  --shadow-lg:0 24px 55px rgba(0,0,0,.65);
+  --visor-bg:radial-gradient(ellipse 80% 60% at 50% 22%,rgba(255,154,46,.06),transparent 60%),
+             radial-gradient(ellipse 70% 50% at 50% 92%,rgba(74,159,212,.06),transparent 60%),
+             linear-gradient(180deg,rgba(15,15,15,.95),rgba(5,5,5,.98));
+  --visor-grid:rgba(255,154,46,.06);
+  --hand-bone-1:#4A9FD4; --hand-bone-2:#1E3A5F; --hand-bone-3:#0A1F35;
+  --hand-palm-1:#1E3A5F; --hand-palm-2:#08182B;
+  --hand-edge:#4A9FD4; --hand-led:#5AB4E8; --hand-led-closed:#FF9A2E;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;scroll-behavior:smooth;}
+body{
+  font-family:var(--font-ui);
+  background:var(--bg-0);
+  color:var(--text-1);
+  min-height:100vh;
+  line-height:1.55;
+  overflow-x:hidden;
+  transition:background .4s,color .3s;
+  -webkit-font-smoothing:antialiased;
+  position:relative;
+}
+
+/* ============ FUNDO ANIMADO ============ */
+#bgCanvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:-1;
+  pointer-events:none;
+  display:block;
+  opacity:.85;
+  transition:opacity .6s;
+}
+@media (prefers-reduced-motion:reduce){
+  #bgCanvas{display:none;}
+}
+
+.page{max-width:1320px;margin:0 auto;padding:1.25rem 1.25rem 2.5rem;position:relative;z-index:1;}
+
+/* ============ TOPBAR ============ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  padding:.9rem 1.15rem;background:var(--bg-glass);
+  backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:1.5rem;
+  flex-wrap:wrap;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+}
+.topbar::before{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent) 30%,var(--inst) 70%,transparent);
+  opacity:.5;
+}
+.brand{display:flex;align-items:center;gap:.85rem;min-width:0;}
+.brand-logo{
+  width:44px;height:44px;border-radius:13px;
+  background:linear-gradient(135deg,var(--inst) 0%,var(--inst-dark) 40%,var(--accent) 100%);
+  display:grid;place-items:center;color:#fff;
+  box-shadow:0 8px 22px rgba(11,105,163,.28);position:relative;overflow:hidden;flex-shrink:0;
+  transition:transform .4s var(--spring);
+}
+.brand-logo svg{width:25px;height:25px;position:relative;z-index:1;}
+.brand-logo::after{
+  content:'';position:absolute;inset:-40%;
+  background:conic-gradient(from 0deg,transparent 0 40%,rgba(255,255,255,.45) 50%,transparent 60% 100%);
+  animation:shine 5s linear infinite;
+}
+@keyframes shine{to{transform:rotate(360deg);}}
+.brand:hover .brand-logo{transform:rotate(-8deg) scale(1.05);}
+.brand-text{display:flex;flex-direction:column;line-height:1.05;min-width:0;}
+.brand-tag{font-family:var(--font-mono);font-size:.58rem;letter-spacing:2.4px;color:var(--accent);text-transform:uppercase;font-weight:700;}
+.brand-title{font-size:1rem;font-weight:800;letter-spacing:-.3px;color:var(--text-1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.brand-title .dot{color:var(--accent);font-weight:900;}
+.topbar-right{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;}
+.status-pill{
+  display:inline-flex;align-items:center;gap:.45rem;padding:.4rem .85rem;
+  font-family:var(--font-mono);font-size:.66rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
+  border-radius:999px;background:var(--green-soft);color:var(--green);border:1px solid rgba(22,163,74,.28);
+}
+.status-pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulseDot 1.6s infinite;box-shadow:0 0 8px currentColor;}
+@keyframes pulseDot{0%,100%{opacity:1;}50%{opacity:.35;}}
+.icon-btn{
+  width:42px;height:42px;border-radius:12px;background:var(--bg-card);border:1px solid var(--border);
+  color:var(--text-1);cursor:pointer;display:grid;place-items:center;
+  transition:all .25s var(--spring);position:relative;overflow:hidden;
+}
+.icon-btn:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 22px rgba(255,138,0,.18);}
+.icon-btn:active{transform:translateY(0) scale(.95);}
+.icon-btn svg{width:18px;height:18px;}
+.icon-btn .t-icon{position:absolute;transition:transform .45s var(--spring),opacity .3s;}
+.icon-btn .t-icon.sun{transform:rotate(0) scale(1);opacity:1;}
+.icon-btn .t-icon.moon{transform:rotate(-90deg) scale(.4);opacity:0;}
+[data-theme="dark"] .icon-btn .t-icon.sun{transform:rotate(90deg) scale(.4);opacity:0;}
+[data-theme="dark"] .icon-btn .t-icon.moon{transform:rotate(0) scale(1);opacity:1;color:var(--accent);}
+.back-btn{
+  display:inline-flex;align-items:center;gap:.45rem;padding:.55rem .95rem;border-radius:12px;
+  background:var(--bg-card);border:1px solid var(--border);color:var(--text-2);
+  font-family:var(--font-mono);font-size:.72rem;font-weight:600;text-decoration:none;
+  transition:all .25s var(--spring);
+}
+.back-btn:hover{border-color:var(--inst);color:var(--inst);transform:translateY(-2px);}
+
+/* ============ GRID ============ */
+.sim-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1.5rem;align-items:start;}
+
+/* ============ VISOR ============ */
+.visor{
+  position:relative;background:var(--visor-bg);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:1.25rem 1.25rem 1rem;overflow:hidden;
+  display:flex;flex-direction:column;min-height:720px;isolation:isolate;
+  box-shadow:var(--shadow-md);
+}
+.visor::before{
+  content:'';position:absolute;bottom:0;left:50%;
+  transform:translateX(-50%) perspective(320px) rotateX(58deg);transform-origin:bottom center;
+  width:200%;height:55%;
+  background-image:linear-gradient(var(--visor-grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--visor-grid) 1px,transparent 1px);
+  background-size:42px 42px;
+  mask-image:linear-gradient(to top,rgba(0,0,0,.85),transparent 70%);
+  -webkit-mask-image:linear-gradient(to top,rgba(0,0,0,.85),transparent 70%);
+  pointer-events:none;z-index:0;
+}
+.visor::after{
+  content:'';position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--inst),transparent);
+  opacity:.5;top:0;animation:scanMove 6s linear infinite;z-index:5;pointer-events:none;
+}
+@keyframes scanMove{0%{top:3%;opacity:0;}10%{opacity:.65;}90%{opacity:.65;}100%{top:97%;opacity:0;}}
+.hud-c{position:absolute;width:22px;height:22px;border:1.5px solid var(--border-strong);z-index:3;pointer-events:none;}
+.hud-c.tl{top:10px;left:10px;border-right:0;border-bottom:0;border-radius:6px 0 0 0;}
+.hud-c.tr{top:10px;right:10px;border-left:0;border-bottom:0;border-radius:0 6px 0 0;}
+.hud-c.bl{bottom:10px;left:10px;border-right:0;border-top:0;border-radius:0 0 0 6px;}
+.hud-c.br{bottom:10px;right:10px;border-left:0;border-top:0;border-radius:0 0 6px 0;}
+.hud-top{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.85rem;z-index:4;position:relative;flex-wrap:wrap;}
+.hud-tag{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:1.6px;color:var(--inst);
+  text-transform:uppercase;padding:.35rem .7rem;border-radius:999px;background:var(--inst-soft);
+  border:1px solid rgba(11,105,163,.22);font-weight:700;display:inline-flex;align-items:center;gap:.4rem;
+}
+.hud-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--inst);box-shadow:0 0 6px var(--inst);animation:pulseDot 1.6s infinite;}
+[data-theme="dark"] .hud-tag{border-color:rgba(74,159,212,.32);}
+.hud-coord{font-family:var(--font-mono);font-size:.6rem;color:var(--text-3);letter-spacing:.9px;font-weight:600;}
+.hud-coord strong{color:var(--inst);font-weight:700;}
+.state-banner{
+  position:relative;z-index:4;display:flex;align-items:center;justify-content:center;gap:.6rem;
+  padding:.7rem 1rem;border-radius:var(--r-md);font-family:var(--font-mono);font-size:.76rem;font-weight:700;
+  letter-spacing:1.8px;text-transform:uppercase;background:var(--bg-card);border:1px solid var(--border);
+  color:var(--text-2);margin-bottom:.5rem;transition:all .4s var(--smooth);
+}
+.state-banner .live{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;animation:pulseDot 1.8s infinite;}
+.state-banner.is-open{color:var(--green);border-color:rgba(22,163,74,.35);box-shadow:inset 0 0 30px rgba(22,163,74,.06);}
+.state-banner.is-closed{color:var(--accent);border-color:rgba(255,138,0,.4);box-shadow:inset 0 0 30px rgba(255,138,0,.08);}
+.state-banner.is-mid{color:var(--inst);border-color:rgba(11,105,163,.35);box-shadow:inset 0 0 30px rgba(11,105,163,.06);}
+.stage{position:relative;flex:1;min-height:420px;display:flex;align-items:center;justify-content:center;z-index:2;padding:.75rem 0;cursor:grab;user-select:none;touch-action:pan-y;}
+.stage:active{cursor:grabbing;}
+.stage-orbit{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:1px dashed var(--border-strong);border-radius:50%;pointer-events:none;opacity:.35;}
+.stage-orbit.o1{width:340px;height:340px;animation:spin 30s linear infinite;}
+.stage-orbit.o2{width:440px;height:440px;animation:spin 45s linear infinite reverse;opacity:.22;}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+.stage-radar{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:340px;height:340px;
+  border-radius:50%;pointer-events:none;z-index:1;opacity:.4;
+  background:conic-gradient(from 0deg,transparent 0deg,color-mix(in srgb,var(--inst) 30%,transparent) 30deg,transparent 60deg);
+  mask:radial-gradient(circle,black 22%,transparent 70%);
+  -webkit-mask:radial-gradient(circle,black 22%,transparent 70%);
+  animation:spin 4.5s linear infinite;
+}
+.hand-wrap{position:relative;width:100%;max-width:420px;z-index:3;}
+
+/* ============ MÃO SVG ============ */
+.hand-svg{
+  width:100%;height:auto;display:block;
+  filter:drop-shadow(0 18px 38px rgba(11,105,163,.22));
+  transform:perspective(900px) rotateX(6deg) rotateY(-3deg);
+  animation:handFloat 6s ease-in-out infinite;
+  transition:filter .5s;
+  overflow:visible;
+}
+[data-theme="dark"] .hand-svg{filter:drop-shadow(0 18px 38px rgba(255,154,46,.22));}
+@keyframes handFloat{0%,100%{transform:perspective(900px) rotateX(6deg) rotateY(-3deg) translateY(0);}50%{transform:perspective(900px) rotateX(6deg) rotateY(-3deg) translateY(-8px);}}
+
+.fal{
+  transform-box:view-box;
+  transform-origin:var(--ox,0) var(--oy,0);
+  transition:transform .55s cubic-bezier(.34,1.45,.55,1);
+  will-change:transform;
+}
+.bone{fill:url(#boneGrad);stroke:var(--hand-edge);stroke-width:1;}
+.bone-shine{fill:rgba(255,255,255,.14);}
+.nail{fill:rgba(180,220,255,.35);stroke:rgba(180,220,255,.22);stroke-width:.5;}
+.j-led{fill:var(--hand-led);filter:drop-shadow(0 0 5px var(--hand-led));transition:fill .4s,filter .4s;}
+.screw{fill:none;stroke:var(--hand-edge);stroke-width:.5;opacity:.5;}
+.palm-shine{fill:url(#palmShine);}
+.palm-circuit{fill:none;stroke:var(--hand-edge);stroke-width:.6;opacity:.4;}
+.core-ring{fill:none;stroke:var(--hand-led);stroke-width:1.2;filter:drop-shadow(0 0 4px var(--hand-led));}
+
+.hand-svg .fal{transform:rotate(0);}
+.hand-svg.tight .j-led{fill:var(--hand-led-closed);filter:drop-shadow(0 0 6px var(--hand-led-closed));}
+
+.hand-svg.pulse{animation:handPulse .65s ease;}
+@keyframes handPulse{
+  0%,100%{filter:drop-shadow(0 18px 38px rgba(11,105,163,.22));}
+  50%{filter:drop-shadow(0 0 42px var(--accent)) drop-shadow(0 18px 38px rgba(255,138,0,.35));}
+}
+
+.edu-hotspot{
+  position:absolute;width:26px;height:26px;border-radius:50%;border:2px solid var(--inst);
+  background:var(--inst-soft);display:grid;place-items:center;color:var(--inst);
+  font-family:var(--font-mono);font-size:.6rem;font-weight:700;cursor:pointer;z-index:6;
+  opacity:0;transform:scale(.4);transition:all .3s var(--spring);pointer-events:none;padding:0;
+}
+.visor.edu-on .edu-hotspot{opacity:1;transform:scale(1);pointer-events:auto;}
+.edu-hotspot::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid var(--inst);opacity:.5;animation:ping 2s ease-out infinite;}
+@keyframes ping{0%{transform:scale(.9);opacity:.6;}100%{transform:scale(1.6);opacity:0;}}
+.edu-hotspot[data-pos="1"]{top:12%;left:47%;}
+.edu-hotspot[data-pos="2"]{top:44%;left:52%;}
+.edu-hotspot[data-pos="3"]{top:72%;left:50%;}
+.edu-hotspot[data-pos="4"]{top:82%;left:62%;}
+.edu-hotspot:hover{transform:scale(1.15) !important;background:var(--inst);color:#fff;}
+.edu-tooltip{
+  position:absolute;z-index:7;max-width:230px;padding:.7rem .85rem;border-radius:var(--r-md);
+  background:var(--bg-card);border:1px solid var(--border-strong);color:var(--text-1);
+  font-size:.76rem;line-height:1.45;box-shadow:var(--shadow-lg);
+  opacity:0;transform:translateY(6px);transition:all .25s var(--spring);pointer-events:none;
+}
+.edu-tooltip.show{opacity:1;transform:translateY(0);}
+.edu-tooltip h5{font-family:var(--font-mono);font-size:.62rem;letter-spacing:1.2px;color:var(--inst);text-transform:uppercase;margin-bottom:.3rem;font-weight:700;}
+
+.telemetry{display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem;margin-top:.85rem;z-index:4;position:relative;}
+.tel-item{
+  background:var(--bg-glass);backdrop-filter:blur(12px);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:.6rem .75rem;display:flex;flex-direction:column;gap:.15rem;
+  transition:border-color .3s,transform .25s var(--spring);
+}
+.tel-item:hover{border-color:var(--border-strong);transform:translateY(-2px);}
+.tel-item .label{font-family:var(--font-mono);font-size:.55rem;letter-spacing:1.4px;color:var(--text-3);text-transform:uppercase;font-weight:700;}
+.tel-item .value{font-family:var(--font-mono);font-size:.92rem;font-weight:700;color:var(--inst);transition:color .35s;letter-spacing:-.3px;}
+.tel-item .value.warn{color:var(--warn);}
+.tel-item .value.crit{color:var(--danger);}
+
+.chart-wrap{
+  margin-top:.7rem;background:var(--bg-glass);backdrop-filter:blur(12px);
+  border:1px solid var(--border);border-radius:var(--r-md);padding:.6rem .85rem .5rem;z-index:4;position:relative;
+}
+.chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;}
+.chart-head .label{font-family:var(--font-mono);font-size:.58rem;letter-spacing:1.4px;color:var(--text-3);text-transform:uppercase;font-weight:700;}
+.chart-head .live-tag{font-family:var(--font-mono);font-size:.56rem;letter-spacing:1px;color:var(--green);display:inline-flex;align-items:center;gap:.3rem;font-weight:700;}
+.chart-head .live-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulseDot 1.4s infinite;}
+#pwmChart{display:block;width:100%;height:62px;}
+
+.panel{display:flex;flex-direction:column;gap:1rem;}
+.card{
+  background:var(--bg-glass);backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid var(--border);border-radius:var(--r-lg);padding:1rem 1.1rem;
+  transition:border-color .3s,transform .3s var(--spring),box-shadow .3s;box-shadow:var(--shadow-sm);
+}
+.card:hover{border-color:var(--border-strong);box-shadow:var(--shadow-md);}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:.7rem;margin-bottom:.75rem;}
+.card-title{
+  font-family:var(--font-mono);font-size:.6rem;letter-spacing:1.8px;color:var(--text-3);
+  text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:.45rem;
+}
+.card-title .badge{
+  font-size:.55rem;padding:.15rem .5rem;border-radius:999px;background:var(--inst-soft);
+  color:var(--inst);border:1px solid rgba(11,105,163,.22);letter-spacing:.8px;font-weight:700;
+}
+[data-theme="dark"] .card-title .badge{border-color:rgba(74,159,212,.32);}
+
+.pwm-display{display:flex;align-items:baseline;justify-content:space-between;gap:.5rem;margin-bottom:.6rem;}
+.pwm-value{font-family:var(--font-mono);font-size:2.1rem;font-weight:800;letter-spacing:-1.2px;color:var(--accent);line-height:1;transition:color .3s;text-shadow:0 2px 20px rgba(255,138,0,.2);}
+.pwm-value .unit{font-size:1rem;color:var(--text-2);margin-left:2px;}
+.pwm-hint{font-family:var(--font-mono);font-size:.64rem;color:var(--text-3);letter-spacing:1px;text-align:right;font-weight:700;}
+.pwm-hint strong{color:var(--inst);font-weight:700;}
+.slider-track{padding:.5rem 0 .3rem;}
+input[type="range"].pwm-slider{
+  -webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:6px;
+  background:linear-gradient(90deg,var(--green) 0%,var(--inst) 50%,var(--accent) 100%);
+  outline:none;cursor:pointer;position:relative;transition:box-shadow .25s;
+}
+input[type="range"].pwm-slider:hover{box-shadow:0 0 0 6px var(--accent-soft);}
+input[type="range"].pwm-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;
+  background:#fff;border:3px solid var(--accent);cursor:grab;
+  box-shadow:0 4px 14px rgba(255,138,0,.4);transition:transform .18s var(--spring);
+}
+input[type="range"].pwm-slider::-webkit-slider-thumb:active{cursor:grabbing;transform:scale(1.15);}
+input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:grab;box-shadow:0 4px 14px rgba(255,138,0,.4);}
+.pwm-ticks{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.56rem;color:var(--text-3);letter-spacing:.7px;margin-top:.3rem;padding:0 2px;font-weight:700;}
+
+.btn-grid{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;}
+.btn-grid + .btn-grid{margin-top:.55rem;}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.45rem;
+  padding:.7rem .9rem;border-radius:var(--r-md);font-family:var(--font-ui);font-weight:700;
+  font-size:.8rem;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-1);
+  transition:all .25s var(--spring);position:relative;overflow:hidden;user-select:none;
+}
+.btn:hover{transform:translateY(-2px);border-color:var(--accent);box-shadow:0 8px 22px rgba(255,138,0,.16);}
+.btn:active{transform:translateY(0) scale(.97);}
+.btn svg{width:15px;height:15px;flex-shrink:0;}
+.btn .ripple{position:absolute;border-radius:50%;background:rgba(255,138,0,.35);transform:scale(0);animation:rippleAnim .6s ease-out;pointer-events:none;}
+@keyframes rippleAnim{to{transform:scale(3);opacity:0;}}
+.btn-primary{background:linear-gradient(135deg,var(--inst),var(--inst-dark));color:#fff;border-color:transparent;box-shadow:0 8px 22px rgba(11,105,163,.28);}
+.btn-primary:hover{color:#fff;border-color:transparent;box-shadow:0 10px 28px rgba(11,105,163,.4);}
+.btn-amber{background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#fff;border-color:transparent;box-shadow:0 8px 22px rgba(255,138,0,.28);}
+.btn-amber:hover{color:#fff;border-color:transparent;box-shadow:0 10px 28px rgba(255,138,0,.4);}
+.btn.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+/* Botões no tema escuro usam amber para dar contraste no preto */
+[data-theme="dark"] .btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent-hover));
+  color:#0A0A0A;
+  box-shadow:0 8px 22px rgba(255,154,46,.35);
+}
+[data-theme="dark"] .btn-primary:hover{
+  color:#0A0A0A;
+  box-shadow:0 10px 28px rgba(255,154,46,.5);
+}
+
+.mic-row{display:flex;align-items:center;gap:.8rem;}
+.mic-btn{
+  width:52px;height:52px;border-radius:50%;border:none;
+  background:linear-gradient(135deg,var(--inst),var(--inst-dark));color:#fff;
+  display:grid;place-items:center;cursor:pointer;flex-shrink:0;
+  box-shadow:0 8px 22px rgba(11,105,163,.3);transition:all .28s var(--spring);position:relative;
+}
+[data-theme="dark"] .mic-btn{
+  background:linear-gradient(135deg,var(--accent),var(--accent-hover));
+  box-shadow:0 8px 22px rgba(255,154,46,.35);
+}
+.mic-btn:hover{transform:scale(1.06);}
+.mic-btn.listening{background:linear-gradient(135deg,var(--danger),#B91C1C);box-shadow:0 0 30px rgba(220,38,38,.5);animation:micPulse 1.2s infinite;}
+@keyframes micPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.06);}}
+.mic-btn svg{width:22px;height:22px;}
+.mic-info{min-width:0;flex:1;}
+.mic-info strong{display:block;font-size:.85rem;font-weight:700;color:var(--text-1);margin-bottom:.1rem;}
+.mic-info small{font-family:var(--font-mono);font-size:.66rem;color:var(--text-3);letter-spacing:.3px;}
+
+.console{background:#0F172A;border:1px solid rgba(255,255,255,.06);border-radius:var(--r-md);overflow:hidden;font-family:var(--font-mono);font-size:.7rem;}
+.console-head{
+  display:flex;align-items:center;gap:.55rem;padding:.5rem .8rem;background:rgba(255,255,255,.03);
+  border-bottom:1px solid rgba(255,255,255,.06);color:#94A3B8;font-size:.58rem;letter-spacing:1.6px;
+  text-transform:uppercase;font-weight:700;
+}
+.console-head .dots{display:flex;gap:4px;}
+.console-head .dots span{width:8px;height:8px;border-radius:50%;background:#F87171;}
+.console-head .dots span:nth-child(2){background:#FBBF24;}
+.console-head .dots span:nth-child(3){background:#34D399;}
+.console-head .title{margin-left:auto;}
+.console-body{padding:.65rem .85rem;height:145px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(74,159,212,.35) transparent;}
+.console-body::-webkit-scrollbar{width:5px;}
+.console-body::-webkit-scrollbar-thumb{background:rgba(74,159,212,.35);border-radius:3px;}
+.log-line{display:flex;gap:.55rem;line-height:1.7;opacity:0;transform:translateY(4px);animation:logIn .25s var(--smooth) forwards;}
+@keyframes logIn{to{opacity:1;transform:translateY(0);}}
+.log-line .ts{color:#475569;flex-shrink:0;}
+.log-line .lvl{font-weight:700;flex-shrink:0;min-width:46px;}
+.log-line .msg{color:#CBD5E1;white-space:normal;word-break:break-word;}
+.log-line.info .lvl{color:#4A9FD4;}
+.log-line.ok   .lvl{color:#34D399;}
+.log-line.warn .lvl{color:#FBBF24;}
+.log-line.err  .lvl{color:#F87171;}
+.log-line.tx   .lvl{color:#A78BFA;}
+
+.docs{margin-top:1.75rem;background:var(--bg-glass);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
+.tabs-head{display:flex;gap:.15rem;padding:.55rem .55rem 0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.tabs-head::-webkit-scrollbar{display:none;}
+.tab-btn{
+  padding:.65rem 1rem;border-radius:var(--r-sm) var(--r-sm) 0 0;background:transparent;border:none;
+  color:var(--text-3);font-family:var(--font-mono);font-size:.66rem;letter-spacing:1.3px;text-transform:uppercase;
+  font-weight:700;cursor:pointer;white-space:nowrap;transition:color .25s,background .25s;border-bottom:2px solid transparent;
+}
+.tab-btn:hover{color:var(--text-1);background:var(--accent-soft);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{padding:1.35rem 1.3rem;display:none;animation:fadeTab .35s var(--smooth);}
+.tab-panel.active{display:block;}
+@keyframes fadeTab{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.tab-panel h3{font-size:1.1rem;margin-bottom:.65rem;letter-spacing:-.3px;font-weight:800;}
+.tab-panel p,.tab-panel li{color:var(--text-2);font-size:.87rem;line-height:1.7;}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.85rem;margin-top:.7rem;}
+.doc-card{padding:.95rem;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);transition:transform .25s var(--spring),border-color .3s;}
+.doc-card:hover{transform:translateY(-3px);border-color:var(--accent);}
+.doc-card h4{font-family:var(--font-mono);font-size:.64rem;letter-spacing:1.2px;color:var(--accent);text-transform:uppercase;margin-bottom:.5rem;font-weight:700;}
+.doc-card .specs{display:flex;flex-direction:column;gap:.3rem;margin-top:.4rem;}
+.doc-card .specs div{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.7rem;color:var(--text-2);}
+.doc-card .specs div span:last-child{color:var(--text-1);font-weight:600;}
+.pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.55rem;margin-top:.7rem;}
+.pipe{padding:.8rem;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);position:relative;transition:transform .25s var(--spring),border-color .3s;}
+.pipe:hover{transform:translateY(-3px);border-color:var(--inst);}
+.pipe .num{font-family:var(--font-mono);font-size:.6rem;letter-spacing:1.4px;color:var(--accent);font-weight:700;}
+.pipe h5{font-size:.82rem;margin:.2rem 0;font-weight:700;}
+.pipe p{font-size:.74rem;color:var(--text-3);line-height:1.5;}
+
+/* ============================================================
+   RODAPÉ PROFISSIONAL
+   ============================================================ */
+.foot{
+  margin-top:3rem;
+  background:var(--bg-glass);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid var(--border);
+  border-radius:var(--r-lg);
+  padding:2rem 1.75rem 1.25rem;
+  position:relative;
+  overflow:hidden;
+  box-shadow:var(--shadow-sm);
+}
+.foot::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg,transparent,var(--accent) 25%,var(--inst) 50%,var(--accent) 75%,transparent);
+  opacity:.7;
+}
+.foot-grid{
+  display:grid;
+  grid-template-columns:1.5fr 1fr 1fr 1.2fr;
+  gap:2rem;
+  margin-bottom:1.75rem;
+}
+.foot-col-title{
+  font-family:var(--font-mono);
+  font-size:.6rem;
+  letter-spacing:1.8px;
+  color:var(--text-3);
+  text-transform:uppercase;
+  font-weight:700;
+  margin-bottom:.85rem;
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
+}
+.foot-col-title::before{
+  content:'';
+  width:14px;height:1.5px;
+  background:var(--accent);
+  border-radius:2px;
+}
+.foot-brand{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+  margin-bottom:.85rem;
+}
+.foot-brand .logo-mini{
+  width:36px;height:36px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--inst),var(--inst-dark) 50%,var(--accent));
+  display:grid;place-items:center;
+  color:#fff;
+  flex-shrink:0;
+  box-shadow:0 6px 16px rgba(11,105,163,.25);
+}
+.foot-brand .logo-mini svg{width:20px;height:20px;}
+.foot-brand strong{
+  font-size:.95rem;
+  font-weight:800;
+  letter-spacing:-.3px;
+  line-height:1.1;
+}
+.foot-brand strong .dot{color:var(--accent);}
+.foot-desc{
+  font-size:.8rem;
+  color:var(--text-2);
+  line-height:1.6;
+  margin-bottom:.85rem;
+}
+.foot-links{display:flex;flex-direction:column;gap:.45rem;}
+.foot-links a{
+  color:var(--text-2);
+  text-decoration:none;
+  font-size:.82rem;
+  font-weight:500;
+  transition:color .2s,padding-left .2s;
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
+  width:fit-content;
+}
+.foot-links a::before{
+  content:'→';
+  opacity:0;
+  transform:translateX(-6px);
+  transition:opacity .2s,transform .2s;
+  color:var(--accent);
+  font-family:var(--font-mono);
+}
+.foot-links a:hover{
+  color:var(--accent);
+  padding-left:2px;
+}
+.foot-links a:hover::before{
+  opacity:1;
+  transform:translateX(0);
+}
+.foot-tech{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.35rem;
+}
+.tech-chip{
+  font-family:var(--font-mono);
+  font-size:.6rem;
+  padding:.28rem .6rem;
+  border-radius:999px;
+  background:var(--inst-soft);
+  color:var(--inst);
+  border:1px solid rgba(11,105,163,.2);
+  font-weight:700;
+  letter-spacing:.4px;
+  transition:transform .2s var(--spring),border-color .2s;
+  display:inline-flex;
+  align-items:center;
+  gap:.3rem;
+}
+.tech-chip:hover{
+  transform:translateY(-2px);
+  border-color:var(--inst);
+}
+[data-theme="dark"] .tech-chip{border-color:rgba(74,159,212,.28);}
+.foot-bottom{
+  padding-top:1.1rem;
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:1rem;
+  flex-wrap:wrap;
+  font-family:var(--font-mono);
+  font-size:.68rem;
+  color:var(--text-3);
+  letter-spacing:.4px;
+}
+.foot-bottom .left{
+  display:inline-flex;
+  align-items:center;
+  gap:.5rem;
+  font-weight:600;
+}
+.foot-bottom .left strong{color:var(--accent);font-weight:700;}
+.foot-bottom .right{
+  display:inline-flex;
+  align-items:center;
+  gap:.85rem;
+}
+.foot-bottom .status-online{
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
+  color:var(--green);
+  font-weight:700;
+}
+.foot-bottom .status-online::before{
+  content:'';
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 6px var(--green);
+  animation:pulseDot 1.8s infinite;
+}
+
+/* ============ BOTÃO VOLTAR AO TOPO ============ */
+.back-to-top{
+  position:fixed;
+  bottom:1.75rem;
+  right:1.75rem;
+  width:46px;height:46px;
+  border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-hover));
+  color:#fff;
+  border:none;
+  cursor:pointer;
+  display:grid;place-items:center;
+  box-shadow:0 10px 26px rgba(255,138,0,.35);
+  opacity:0;
+  transform:translateY(20px) scale(.85);
+  pointer-events:none;
+  transition:all .35s var(--spring);
+  z-index:90;
+}
+.back-to-top.show{
+  opacity:1;
+  transform:translateY(0) scale(1);
+  pointer-events:auto;
+}
+.back-to-top:hover{
+  transform:translateY(-3px) scale(1.06);
+  box-shadow:0 14px 32px rgba(255,138,0,.5);
+}
+.back-to-top:active{transform:scale(.92);}
+.back-to-top svg{width:20px;height:20px;}
+
+.toast{
+  position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(140%);
+  padding:.75rem 1.2rem;border-radius:var(--r-md);background:var(--bg-card);border:1px solid var(--border-strong);
+  color:var(--text-1);font-family:var(--font-mono);font-size:.74rem;font-weight:600;z-index:1000;
+  box-shadow:var(--shadow-lg);transition:transform .4s var(--spring);max-width:calc(100vw - 3rem);
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.err{border-color:rgba(220,38,38,.5);color:var(--danger);}
+.toast.ok{border-color:rgba(22,163,74,.5);color:var(--green);}
+
+@media (max-width:1050px){
+  .sim-grid{grid-template-columns:1fr;}
+  .visor{min-height:580px;}
+  .stage{min-height:340px;}
+  .stage-orbit.o1{width:280px;height:280px;}
+  .stage-orbit.o2{width:360px;height:360px;}
+  .stage-radar{width:280px;height:280px;}
+  .foot-grid{grid-template-columns:1fr 1fr;gap:1.5rem;}
+}
+@media (max-width:640px){
+  .page{padding:.75rem .75rem 1.5rem;}
+  .topbar{padding:.75rem .9rem;}
+  .brand-tag{display:none;}
+  .brand-title{font-size:.9rem;}
+  .telemetry{grid-template-columns:1fr 1fr;}
+  .visor{padding:1rem;min-height:500px;}
+  .hand-wrap{max-width:320px;}
+  .stage-orbit{display:none;}
+  .stage-radar{width:220px;height:220px;}
+  .pwm-value{font-size:1.7rem;}
+  .hud-coord{display:none;}
+  .tab-btn{padding:.55rem .75rem;font-size:.6rem;}
+  .foot-grid{grid-template-columns:1fr;gap:1.25rem;}
+  .foot-bottom{flex-direction:column;align-items:flex-start;}
+  .back-to-top{width:42px;height:42px;bottom:1.25rem;right:1.25rem;}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+  .hand-svg{animation:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- FUNDO ANIMADO MINIMALISTA -->
+<canvas id="bgCanvas" aria-hidden="true"></canvas>
+
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/>
+          <path d="M10 10.5V6a2 2 0 0 0-4 0v8"/>
+          <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-tag">SIM · v5.0 · IFNMG</span>
+        <span class="brand-title">Mão Robótica Arduino<span class="dot">.</span>ino</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="status-pill"><span class="dot"></span> Online</span>
+      <button class="icon-btn" id="themeBtn" aria-label="Alternar tema" title="Alternar tema">
+        <svg class="t-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        <svg class="t-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <a href="index.html" class="back-btn">← Voltar</a>
+    </div>
+  </header>
+
+  <div class="sim-grid">
+    <section class="visor" id="visor" aria-label="Visualizador 3D da mão robótica">
+      <div class="hud-c tl"></div><div class="hud-c tr"></div>
+      <div class="hud-c bl"></div><div class="hud-c br"></div>
+      <div class="hud-top">
+        <span class="hud-tag">LIVE VIEW · SG90</span>
+        <span class="hud-coord">X:<strong id="hudX">120</strong> Y:<strong id="hudY">045</strong> Z:<strong id="hudZ">08</strong> · 50Hz</span>
+      </div>
+      <div class="state-banner is-open" id="stateBanner">
+        <span class="live"></span>
+        <span id="stateText">ESTADO · MÃO ABERTA</span>
+      </div>
+
+      <div class="stage" id="stage" title="Arraste horizontalmente para ajustar o PWM">
+        <div class="stage-orbit o1"></div>
+        <div class="stage-orbit o2"></div>
+        <div class="stage-radar"></div>
+
+        <div class="hand-wrap" id="handWrap">
+          <svg class="hand-svg" id="handSvg" viewBox="0 0 260 340" xmlns="http://www.w3.org/2000/svg" aria-label="Mão robótica 3D">
+            <defs>
+              <linearGradient id="boneGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="var(--hand-bone-1)"/>
+                <stop offset="60%" stop-color="var(--hand-bone-2)"/>
+                <stop offset="100%" stop-color="var(--hand-bone-3)"/>
+              </linearGradient>
+              <linearGradient id="palmGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="var(--hand-palm-1)"/>
+                <stop offset="100%" stop-color="var(--hand-palm-2)"/>
+              </linearGradient>
+              <linearGradient id="wristGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="var(--hand-bone-2)"/>
+                <stop offset="100%" stop-color="#04101E"/>
+              </linearGradient>
+              <radialGradient id="palmShine" cx="35%" cy="25%" r="70%">
+                <stop offset="0%" stop-color="rgba(125,211,252,.28)"/>
+                <stop offset="100%" stop-color="rgba(125,211,252,0)"/>
+              </radialGradient>
+              <radialGradient id="coreGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#5EEAD4" stop-opacity=".9"/>
+                <stop offset="45%" stop-color="#06B6D4" stop-opacity=".5"/>
+                <stop offset="100%" stop-color="#0E7490" stop-opacity="0"/>
+              </radialGradient>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2.2" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+              <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#0B69A3" flood-opacity=".28"/>
+              </filter>
+            </defs>
+
+            <ellipse cx="130" cy="318" rx="82" ry="7" fill="rgba(11,105,163,.18)"/>
+
+            <g filter="url(#drop)">
+              <path d="M 88,236 L 88,296 Q 88,308 100,308 L 152,308 Q 164,308 164,296 L 164,236 Z"
+                    fill="url(#wristGrad)" stroke="var(--hand-edge)" stroke-width=".9"/>
+              <line x1="94" y1="252" x2="158" y2="252" stroke="var(--hand-led)" stroke-width="1.1" opacity=".55" filter="url(#glow)"/>
+              <line x1="94" y1="268" x2="158" y2="268" stroke="var(--hand-led)" stroke-width="1.1" opacity=".4"/>
+              <line x1="94" y1="284" x2="158" y2="284" stroke="var(--hand-led)" stroke-width="1.1" opacity=".28"/>
+
+              <path d="M 68,140 Q 54,210 78,238 L 174,238 Q 198,210 184,140 Z"
+                    fill="url(#palmGrad)" stroke="var(--hand-edge)" stroke-width="1.3"/>
+              <path d="M 80,148 Q 70,204 86,228 L 130,228 Q 126,182 118,148 Z"
+                    fill="url(#palmShine)"/>
+
+              <g class="palm-circuit">
+                <path d="M 100,168 L 100,196 L 130,196" stroke-width="1"/>
+                <path d="M 152,168 L 152,196 L 130,196" stroke-width="1"/>
+                <path d="M 112,215 L 148,215" stroke-width=".8"/>
+              </g>
+
+              <circle cx="130" cy="196" r="26" fill="url(#coreGlow)" opacity=".55"/>
+              <circle cx="130" cy="196" r="14" class="core-ring"/>
+              <circle cx="130" cy="196" r="7" fill="none" stroke="var(--hand-led)" stroke-width="1.4"/>
+              <circle cx="130" cy="196" r="3" fill="var(--hand-led)" filter="url(#glow)"/>
+              <circle cx="130" cy="196" r="24" fill="none" stroke="var(--hand-led)" stroke-width=".7" stroke-dasharray="3 5" opacity=".55">
+                <animateTransform attributeName="transform" type="rotate" from="0 130 196" to="360 130 196" dur="18s" repeatCount="indefinite"/>
+              </circle>
+
+              <g class="fal finger-thumb" id="fingerThumb" style="--ox:58px; --oy:200px;">
+                <rect class="bone" x="46" y="155" width="22" height="45" rx="11"/>
+                <rect class="bone-shine" x="48" y="158" width="4" height="40" rx="2"/>
+                <ellipse class="j-led" cx="57" cy="155" rx="3" ry="3"/>
+                <circle class="screw" cx="57" cy="200" r="2.2"/>
+                <g class="fal" id="thumbPhal2" style="--ox:57px; --oy:155px;">
+                  <rect class="bone" x="47" y="118" width="20" height="37" rx="10"/>
+                  <rect class="bone-shine" x="49" y="121" width="3.5" height="32" rx="1.75"/>
+                  <ellipse class="nail" cx="57" cy="122" rx="6" ry="3.5"/>
+                  <ellipse class="j-led" cx="57" cy="118" rx="2.5" ry="2.5"/>
+                </g>
+              </g>
+
+              <g class="fal finger-index" id="fingerIndex" style="--ox:88px; --oy:142px;">
+                <rect class="bone" x="77" y="90" width="22" height="52" rx="11"/>
+                <rect class="bone-shine" x="79" y="93" width="4" height="46" rx="2"/>
+                <ellipse class="j-led" cx="88" cy="90" rx="3" ry="3"/>
+                <circle class="screw" cx="88" cy="137" r="2.2"/>
+                <g class="fal" id="indexPhal2" style="--ox:88px; --oy:90px;">
+                  <rect class="bone" x="78" y="52" width="20" height="38" rx="10"/>
+                  <rect class="bone-shine" x="80" y="55" width="3.5" height="33" rx="1.75"/>
+                  <ellipse class="j-led" cx="88" cy="52" rx="2.5" ry="2.5"/>
+                  <g class="fal" id="indexPhal3" style="--ox:88px; --oy:52px;">
+                    <rect class="bone" x="79" y="24" width="18" height="28" rx="9"/>
+                    <rect class="bone-shine" x="81" y="26" width="3" height="24" rx="1.5"/>
+                    <ellipse class="nail" cx="88" cy="26" rx="6" ry="3.5"/>
+                  </g>
+                </g>
+              </g>
+
+              <g class="fal finger-middle" id="fingerMiddle" style="--ox:114px; --oy:138px;">
+                <rect class="bone" x="103" y="78" width="22" height="60" rx="11"/>
+                <rect class="bone-shine" x="105" y="81" width="4" height="54" rx="2"/>
+                <ellipse class="j-led" cx="114" cy="78" rx="3" ry="3"/>
+                <circle class="screw" cx="114" cy="133" r="2.2"/>
+                <g class="fal" id="middlePhal2" style="--ox:114px; --oy:78px;">
+                  <rect class="bone" x="104" y="38" width="20" height="40" rx="10"/>
+                  <rect class="bone-shine" x="106" y="41" width="3.5" height="35" rx="1.75"/>
+                  <ellipse class="j-led" cx="114" cy="38" rx="2.5" ry="2.5"/>
+                  <g class="fal" id="middlePhal3" style="--ox:114px; --oy:38px;">
+                    <rect class="bone" x="105" y="6" width="18" height="32" rx="9"/>
+                    <rect class="bone-shine" x="107" y="8" width="3" height="28" rx="1.5"/>
+                    <ellipse class="nail" cx="114" cy="8" rx="6" ry="3.5"/>
+                  </g>
+                </g>
+              </g>
+
+              <g class="fal finger-ring" id="fingerRing" style="--ox:140px; --oy:142px;">
+                <rect class="bone" x="129" y="90" width="22" height="52" rx="11"/>
+                <rect class="bone-shine" x="131" y="93" width="4" height="46" rx="2"/>
+                <ellipse class="j-led" cx="140" cy="90" rx="3" ry="3"/>
+                <circle class="screw" cx="140" cy="137" r="2.2"/>
+                <g class="fal" id="ringPhal2" style="--ox:140px; --oy:90px;">
+                  <rect class="bone" x="130" y="52" width="20" height="38" rx="10"/>
+                  <rect class="bone-shine" x="132" y="55" width="3.5" height="33" rx="1.75"/>
+                  <ellipse class="j-led" cx="140" cy="52" rx="2.5" ry="2.5"/>
+                  <g class="fal" id="ringPhal3" style="--ox:140px; --oy:52px;">
+                    <rect class="bone" x="131" y="24" width="18" height="28" rx="9"/>
+                    <rect class="bone-shine" x="133" y="26" width="3" height="24" rx="1.5"/>
+                    <ellipse class="nail" cx="140" cy="26" rx="6" ry="3.5"/>
+                  </g>
+                </g>
+              </g>
+
+              <g class="fal finger-pinky" id="fingerPinky" style="--ox:166px; --oy:156px;">
+                <rect class="bone" x="156" y="112" width="20" height="44" rx="10"/>
+                <rect class="bone-shine" x="158" y="115" width="3.5" height="38" rx="1.75"/>
+                <ellipse class="j-led" cx="166" cy="112" rx="3" ry="3"/>
+                <circle class="screw" cx="166" cy="151" r="2.2"/>
+                <g class="fal" id="pinkyPhal2" style="--ox:166px; --oy:112px;">
+                  <rect class="bone" x="157" y="78" width="18" height="34" rx="9"/>
+                  <rect class="bone-shine" x="159" y="81" width="3" height="29" rx="1.5"/>
+                  <ellipse class="j-led" cx="166" cy="78" rx="2.5" ry="2.5"/>
+                  <g class="fal" id="pinkyPhal3" style="--ox:166px; --oy:78px;">
+                    <rect class="bone" x="158" y="52" width="16" height="26" rx="8"/>
+                    <rect class="bone-shine" x="160" y="54" width="2.5" height="22" rx="1.25"/>
+                    <ellipse class="nail" cx="166" cy="54" rx="5.5" ry="3.2"/>
+                  </g>
+                </g>
+              </g>
+            </g>
+
+            <rect x="40" y="90" width="180" height="1.6" fill="var(--hand-led)" opacity=".45" filter="url(#glow)">
+              <animate attributeName="y" values="60;280;60" dur="5s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values=".7;.15;.7" dur="5s" repeatCount="indefinite"/>
+            </rect>
+          </svg>
+
+          <button class="edu-hotspot" data-pos="1" data-title="Falanges" data-desc="Dedos impressos em PLA com juntas articuladas — cada segmento gira em torno do eixo do servo.">1</button>
+          <button class="edu-hotspot" data-pos="2" data-title="Palma subatuada" data-desc="Um único servo distribui força para os tendões dos dedos via cabos e polias.">2</button>
+          <button class="edu-hotspot" data-pos="3" data-title="Servo SG90" data-desc="Micro servo 4.8V, torque 2.5kg·cm, PWM 0°–180° gerado pelo Arduino.">3</button>
+          <button class="edu-hotspot" data-pos="4" data-title="Pulso / Arduino" data-desc="ATmega328P recebe comandos e gera o sinal PWM que aciona o servo.">4</button>
+
+          <div class="edu-tooltip" id="eduTip">
+            <h5 id="eduTipTitle">Título</h5>
+            <div id="eduTipDesc">Descrição</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="telemetry">
+        <div class="tel-item"><span class="label">Ângulo PWM</span><span class="value" id="telAngle">0°</span></div>
+        <div class="tel-item"><span class="label">Preensão</span><span class="value" id="telGrip">0%</span></div>
+        <div class="tel-item"><span class="label">Temp. Servo</span><span class="value" id="telTemp">24°C</span></div>
+        <div class="tel-item"><span class="label">Ciclos</span><span class="value" id="telCycles">0</span></div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="chart-head">
+          <span class="label">Sinal PWM · últimos 10s</span>
+          <span class="live-tag">LIVE</span>
+        </div>
+        <canvas id="pwmChart" width="600" height="62"></canvas>
+      </div>
+    </section>
+
+    <aside class="panel" aria-label="Painel de controle">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">PWM · Controle <span class="badge">0–180°</span></span>
+        </div>
+        <div class="pwm-display">
+          <div class="pwm-value"><span id="pwmNum">0</span><span class="unit">°</span></div>
+          <div class="pwm-hint">DUTY <strong id="dutyPct">0%</strong></div>
+        </div>
+        <div class="slider-track">
+          <input type="range" min="0" max="180" value="0" step="1" class="pwm-slider" id="pwmSlider" aria-label="Controle de PWM do servo" />
+          <div class="pwm-ticks"><span>0° ABERTO</span><span>90°</span><span>180° FECHADO</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="card-title">Ações Rápidas</span></div>
+        <div class="btn-grid">
+          <button class="btn btn-primary" id="btnOpen" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            ABRIR
+          </button>
+          <button class="btn btn-amber" id="btnClose" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 19l-7-7 7-7"/></svg>
+            FECHAR
+          </button>
+        </div>
+        <div class="btn-grid">
+          <button class="btn" id="btnDemo" type="button">▶ Demo Auto</button>
+          <button class="btn" id="btnDiag" type="button">⚙ Diagnóstico</button>
+        </div>
+        <div class="btn-grid">
+          <button class="btn" id="btnEdu" type="button">📖 Educacional</button>
+          <button class="btn" id="btnSound" type="button">🔊 Som Servo</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="card-title">Reconhecimento Vocal</span></div>
+        <div class="mic-row">
+          <button class="mic-btn" id="micBtn" type="button" title="Clique para falar" aria-label="Ativar reconhecimento de voz">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+            </svg>
+          </button>
+          <div class="mic-info">
+            <strong id="micTitle">Ativar Reconhecimento</strong>
+            <small id="micSub">Diga "abrir" ou "fechar"</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="card-title">Console Serial · Arduino</span></div>
+        <div class="console">
+          <div class="console-head">
+            <span class="dots"><span></span><span></span><span></span></span>
+            <span class="title">ttyUSB0 · 9600 baud</span>
+          </div>
+          <div class="console-body" id="consoleBody"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="docs" aria-label="Documentação do projeto">
+    <div class="tabs-head" role="tablist">
+      <button class="tab-btn active" data-tab="sobre" role="tab">Sobre o Projeto</button>
+      <button class="tab-btn" data-tab="comp" role="tab">Componentes</button>
+      <button class="tab-btn" data-tab="arq" role="tab">Arquitetura</button>
+      <button class="tab-btn" data-tab="apl" role="tab">Aplicações</button>
+    </div>
+
+    <div class="tab-panel active" data-panel="sobre">
+      <h3>Uma prótese assistiva por uma fração do custo</h3>
+      <p>Este projeto desenvolve uma mão robótica subatuada impressa em 3D, controlada por Arduino Uno e servomotores SG90. O objetivo é oferecer uma alternativa acessível para reabilitação assistiva — com foco em confiabilidade operacional e manufatura de baixo custo.</p>
+      <div class="doc-grid">
+        <div class="doc-card"><h4>Objetivo</h4><p>Protótipo funcional de prótese ativa com operação binária e resposta inferior a 400ms.</p></div>
+        <div class="doc-card"><h4>Metodologia</h4><p>Modelagem CAD → Impressão 3D PLA → Montagem eletromecânica → Validação em bancada.</p></div>
+        <div class="doc-card"><h4>Resultados</h4><p>Tempo de resposta: 380ms · 5 dedos articulados · custo estimado inferior a R$ 200.</p></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="comp">
+      <h3>BOM · Bill of Materials</h3>
+      <div class="doc-grid">
+        <div class="doc-card"><h4>Controle</h4><div class="specs">
+          <div><span>Microcontrolador</span><span>Arduino Uno R3</span></div>
+          <div><span>MCU</span><span>ATmega328P</span></div>
+          <div><span>Clock</span><span>16 MHz</span></div>
+        </div></div>
+        <div class="doc-card"><h4>Atuação</h4><div class="specs">
+          <div><span>Servo</span><span>SG90 (×5)</span></div>
+          <div><span>Torque</span><span>2.5 kg·cm</span></div>
+          <div><span>Tensão</span><span>4.8V – 6V</span></div>
+        </div></div>
+        <div class="doc-card"><h4>Estrutura</h4><div class="specs">
+          <div><span>Material</span><span>PLA 1.75mm</span></div>
+          <div><span>Nozzle</span><span>0.4mm · 210°C</span></div>
+          <div><span>Infill</span><span>20% grid</span></div>
+        </div></div>
+        <div class="doc-card"><h4>Alimentação</h4><div class="specs">
+          <div><span>Fonte</span><span>5V 2A</span></div>
+          <div><span>Driver</span><span>BUCK LM2596</span></div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="arq">
+      <h3>Arquitetura do Sinal</h3>
+      <p>Do comando acústico até a movimentação física do protótipo, em 4 estágios:</p>
+      <div class="pipeline">
+        <div class="pipe"><span class="num">01</span><h5>Entrada</h5><p>Comando vocal capturado via Web Speech API.</p></div>
+        <div class="pipe"><span class="num">02</span><h5>Processamento</h5><p>Classificação do comando e mapeamento para ângulo.</p></div>
+        <div class="pipe"><span class="num">03</span><h5>Controle</h5><p>Arduino gera sinal PWM de 50Hz com duty 0°–180°.</p></div>
+        <div class="pipe"><span class="num">04</span><h5>Atuação</h5><p>Servo posiciona eixo, tracionando cabos dos dedos.</p></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="apl">
+      <h3>Onde essa tecnologia pode atuar</h3>
+      <div class="doc-grid">
+        <div class="doc-card"><h4>Reabilitação</h4><p>Fisioterapia pós-AVC com feedback motor assistido.</p></div>
+        <div class="doc-card"><h4>Educação</h4><p>Ensino de robótica, mecatrônica e programação embarcada.</p></div>
+        <div class="doc-card"><h4>Indústria 4.0</h4><p>Pinças robóticas low-cost para linhas de montagem.</p></div>
+        <div class="doc-card"><h4>Saúde pública</h4><p>Alternativa acessível a próteses importadas para redes SUS.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="foot-grid">
+      <div class="foot-col">
+        <div class="foot-brand">
+          <div class="logo-mini">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/>
+              <path d="M10 10.5V6a2 2 0 0 0-4 0v8"/>
+              <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+            </svg>
+          </div>
+          <strong>Mão Robótica Arduino<span class="dot">.</span>ino</strong>
+        </div>
+        <p class="foot-desc">
+          Prótese subatuada impressa em 3D com controle PWM via Arduino Uno e servo SG90.
+          Projeto de conclusão de curso focado em reabilitação assistiva acessível.
+        </p>
+        <div class="foot-tech">
+          <span class="tech-chip">⚡ Arduino Uno</span>
+          <span class="tech-chip">⚙ SG90 ×5</span>
+          <span class="tech-chip">🧵 PLA 3D</span>
+        </div>
+      </div>
+
+      <div class="foot-col">
+        <span class="foot-col-title">Simulador</span>
+        <div class="foot-links">
+          <a href="#visor">Visualizador 3D</a>
+          <a href="#stage">Controle Manual</a>
+          <a href="#stage">Reconhecimento Vocal</a>
+          <a href="#stage">Modo Demonstração</a>
+        </div>
+      </div>
+
+      <div class="foot-col">
+        <span class="foot-col-title">Documentação</span>
+        <div class="foot-links">
+          <a href="index.html">Página Inicial</a>
+          <a href="#docs">Sobre o Projeto</a>
+          <a href="#docs">Componentes</a>
+          <a href="#docs">Arquitetura</a>
+        </div>
+      </div>
+
+      <div class="foot-col">
+        <span class="foot-col-title">Tecnologias</span>
+        <div class="foot-tech">
+          <span class="tech-chip">🌐 HTML5</span>
+          <span class="tech-chip">🎨 CSS3</span>
+          <span class="tech-chip">⚡ ES6+</span>
+          <span class="tech-chip">🔊 Web Speech API</span>
+          <span class="tech-chip">📊 Canvas 2D</span>
+          <span class="tech-chip">🎵 Web Audio</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot-bottom">
+      <div class="left">
+        <strong>TCC Mão Robótica Arduino</strong> · © 2026 · IFNMG · Engenharia Mecatrônica
+      </div>
+      <div class="right">
+        <span class="status-online">SISTEMA OPERACIONAL</span>
+        <span>v5.0</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- BOTÃO VOLTAR AO TOPO -->
+<button class="back-to-top" id="backToTop" aria-label="Voltar ao topo">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const fmtTime = () => new Date().toTimeString().slice(0, 8);
+
+  /* ============================================================
+     FUNDO ANIMADO — ORBES FLUTUANTES MINIMALISTAS
+     ============================================================ */
+  (function initBackground() {
+    const canvas = $('bgCanvas');
+    if (!canvas) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      canvas.style.display = 'none';
+      return;
+    }
+    const ctx = canvas.getContext('2d');
+    let W = 0, H = 0, orbs = [], lastT = 0, paused = false;
+
+    function currentTheme() {
+      return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    }
+
+    function palettes() {
+      return currentTheme() === 'dark'
+        ? [
+            [255, 154, 46],
+            [74, 159, 212],
+            [44, 123, 176],
+            [255, 176, 87],
+            [167, 139, 250]
+          ]
+        : [
+            [255, 205, 140],
+            [190, 220, 255],
+            [200, 245, 220],
+            [255, 235, 195],
+            [230, 220, 255]
+          ];
+    }
+
+    class Orb {
+      constructor(i) {
+        this.i = i;
+        this.colorIdx = i % 5;
+        this.reset();
+        const c = this.targetColor();
+        this.r = c[0]; this.g = c[1]; this.b = c[2];
+      }
+      reset() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.baseR = 180 + Math.random() * 260;
+        this.r = this.baseR;
+        this.vx = (Math.random() - 0.5) * 0.18;
+        this.vy = (Math.random() - 0.5) * 0.18;
+        this.phX = Math.random() * Math.PI * 2;
+        this.phY = Math.random() * Math.PI * 2;
+        this.phB = Math.random() * Math.PI * 2;
+        this.phO = Math.random() * Math.PI * 2;
+        this.spX = 0.00015 + Math.random() * 0.00012;
+        this.spY = 0.00012 + Math.random() * 0.00014;
+        this.spB = 0.00018 + Math.random() * 0.0002;
+        this.spO = 0.00014 + Math.random() * 0.00018;
+        this.baseOp = 0.20 + Math.random() * 0.15;
+      }
+      targetColor() {
+        const p = palettes();
+        return p[this.colorIdx % p.length];
+      }
+      update(t) {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.x += Math.sin(t * this.spX + this.phX) * 0.10;
+        this.y += Math.cos(t * this.spY + this.phY) * 0.10;
+        const pad = this.baseR;
+        if (this.x < -pad) this.x = W + pad;
+        if (this.x > W + pad) this.x = -pad;
+        if (this.y < -pad) this.y = H + pad;
+        if (this.y > H + pad) this.y = -pad;
+        const breath = Math.sin(t * this.spB + this.phB) * 0.10 + 1;
+        this.r = this.baseR * breath;
+        const c = this.targetColor();
+        this._r = (this._r ?? c[0]) + (c[0] - (this._r ?? c[0])) * 0.03;
+        this._g = (this._g ?? c[1]) + (c[1] - (this._g ?? c[1])) * 0.03;
+        this._b = (this._b ?? c[2]) + (c[2] - (this._b ?? c[2])) * 0.03;
+        this.op = this.baseOp * (0.72 + 0.28 * Math.sin(t * this.spO + this.phO));
+      }
+      draw() {
+        const rr = Math.round(this._r ?? this.r);
+        const gg = Math.round(this._g ?? this.g);
+        const bb = Math.round(this._b ?? this.b);
+        const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+        g.addColorStop(0, `rgba(${rr},${gg},${bb},${this.op})`);
+        g.addColorStop(0.4, `rgba(${rr},${gg},${bb},${this.op * 0.55})`);
+        g.addColorStop(0.75, `rgba(${rr},${gg},${bb},${this.op * 0.15})`);
+        g.addColorStop(1, `rgba(${rr},${gg},${bb},0)`);
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    function init() {
+      const count = window.innerWidth < 768 ? 4 : 6;
+      orbs = [];
+      for (let i = 0; i < count; i++) orbs.push(new Orb(i));
+    }
+    function animate(ts) {
+      if (paused) { lastT = 0; requestAnimationFrame(animate); return; }
+      lastT = ts;
+      ctx.clearRect(0, 0, W, H);
+      for (const o of orbs) { o.update(ts); o.draw(); }
+      requestAnimationFrame(animate);
+    }
+
+    document.addEventListener('visibilitychange', () => { paused = document.hidden; });
+    let rt;
+    window.addEventListener('resize', () => {
+      clearTimeout(rt);
+      rt = setTimeout(() => { resize(); init(); }, 250);
+    });
+
+    new MutationObserver(() => {}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    resize(); init(); requestAnimationFrame(animate);
+  })();
+
+  /* =============== TEMA =============== */
+  const rootEl = document.documentElement;
+  const saved = localStorage.getItem('sim_theme_v5');
+  if (saved) rootEl.setAttribute('data-theme', saved);
+
+  $('themeBtn').addEventListener('click', () => {
+    const next = rootEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    rootEl.setAttribute('data-theme', next);
+    localStorage.setItem('sim_theme_v5', next);
+    log('info', `Tema alterado para "${next}"`);
+  });
+
+  /* =============== VOLTAR AO TOPO =============== */
+  const btt = $('backToTop');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 380) btt.classList.add('show');
+    else btt.classList.remove('show');
+  }, { passive: true });
+  btt.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* =============== TOAST =============== */
+  const toastEl = $('toast');
+  let toastTimer = null;
+  function toast(msg, type = '') {
+    toastEl.textContent = msg;
+    toastEl.className = 'toast show ' + type;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.className = 'toast ' + type, 2600);
+  }
+
+  /* =============== CONSOLE =============== */
+  const consoleBody = $('consoleBody');
+  const MAX_LOGS = 40;
+  function log(level, msg) {
+    const line = document.createElement('div');
+    line.className = 'log-line ' + level;
+    const lvlMap = { info: 'INFO', ok: 'OK', warn: 'WARN', err: 'ERROR', tx: 'TX' };
+    line.innerHTML = `<span class="ts">[${fmtTime()}]</span><span class="lvl">${lvlMap[level]||'INFO'}</span><span class="msg"></span>`;
+    line.querySelector('.msg').textContent = msg;
+    consoleBody.appendChild(line);
+    while (consoleBody.children.length > MAX_LOGS) consoleBody.removeChild(consoleBody.firstChild);
+    consoleBody.scrollTop = consoleBody.scrollHeight;
+  }
+
+  /* =============== ÁUDIO =============== */
+  let audioCtx = null;
+  let soundEnabled = true;
+  function ensureAudio() {
+    if (!audioCtx) { try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){ soundEnabled = false; } }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+  function playServoMove(f0a, t0a) {
+    if (!soundEnabled || !audioCtx) return;
+    const dur = .32;
+    const f0 = 100 + f0a * .85, f1 = 100 + t0a * .85;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(f0, audioCtx.currentTime);
+    osc.frequency.linearRampToValueAtTime(f1, audioCtx.currentTime + dur);
+    g.gain.setValueAtTime(.0001, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.05, audioCtx.currentTime + .03);
+    g.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + dur);
+    osc.connect(g).connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur + .05);
+  }
+  function playBeep(freq=880, dur=.08, vol=.05) {
+    if (!soundEnabled || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + dur);
+    osc.connect(g).connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + dur);
+  }
+  $('btnSound').classList.add('active');
+  $('btnSound').addEventListener('click', (e) => {
+    soundEnabled = !soundEnabled;
+    e.currentTarget.classList.toggle('active', soundEnabled);
+    e.currentTarget.textContent = soundEnabled ? '🔊 Som Servo' : '🔇 Som Desligado';
+    if (soundEnabled) { ensureAudio(); playBeep(880,.08,.05); }
+    log('info', `Áudio ${soundEnabled ? 'ativado' : 'desativado'}`);
+  });
+
+  /* =============== MOTOR DE ARTICULAÇÃO =============== */
+  const ANG = { proximal: 22, middle: 88, distal: 62, thumbZ: 48, thumbPhal: 40 };
+
+  const fingers = {
+    thumb:  { base: $('fingerThumb'),   phal2: $('thumbPhal2') },
+    index:  { base: $('fingerIndex'),   phal2: $('indexPhal2'),  phal3: $('indexPhal3') },
+    middle: { base: $('fingerMiddle'),  phal2: $('middlePhal2'), phal3: $('middlePhal3') },
+    ring:   { base: $('fingerRing'),    phal2: $('ringPhal2'),   phal3: $('ringPhal3') },
+    pinky:  { base: $('fingerPinky'),   phal2: $('pinkyPhal2'),  phal3: $('pinkyPhal3') }
+  };
+
+  const handSvg = $('handSvg');
+  const stateBanner = $('stateBanner');
+  const stateText = $('stateText');
+  const pwmSlider = $('pwmSlider');
+  const pwmNum = $('pwmNum');
+  const dutyPct = $('dutyPct');
+  const telAngle = $('telAngle');
+  const telGrip = $('telGrip');
+  const telTemp = $('telTemp');
+  const telCycles = $('telCycles');
+  const hudX = $('hudX'), hudY = $('hudY'), hudZ = $('hudZ');
+
+  const state = {
+    angle: 0, cycles: 0, temp: 24,
+    isDemo: false, demoTimer: null, isDiag: false, history: []
+  };
+
+  function applyArticulation(angle) {
+    const t = clamp(angle / 180, 0, 1);
+    const e = t * t * (3 - 2 * t);
+    const order = ['index', 'middle', 'ring', 'pinky'];
+    order.forEach((name, i) => {
+      const f = fingers[name];
+      const stagger = clamp((e - i * 0.04) / (1 - i * 0.04), 0, 1);
+      const smooth = stagger * stagger * (3 - 2 * stagger);
+      f.base.style.transform = `rotate(${smooth * ANG.proximal}deg)`;
+      f.phal2.style.transform = `rotate(${smooth * ANG.middle}deg)`;
+      if (f.phal3) f.phal3.style.transform = `rotate(${smooth * ANG.distal}deg)`;
+    });
+    const thumbSmooth = e * e * (3 - 2 * e);
+    fingers.thumb.base.style.transform = `rotate(${-20 + thumbSmooth * ANG.thumbZ}deg)`;
+    fingers.thumb.phal2.style.transform = `rotate(${thumbSmooth * ANG.thumbPhal}deg)`;
+    if (angle > 150) handSvg.classList.add('tight');
+    else handSvg.classList.remove('tight');
+  }
+
+  function setBannerByAngle(a) {
+    stateBanner.classList.remove('is-open','is-closed','is-mid');
+    if (a < 20) { stateBanner.classList.add('is-open'); stateText.textContent = 'ESTADO · MÃO ABERTA'; }
+    else if (a > 160) { stateBanner.classList.add('is-closed'); stateText.textContent = 'ESTADO · MÃO FECHADA'; }
+    else { stateBanner.classList.add('is-mid'); stateText.textContent = `ESTADO · TRANSIÇÃO · ${a}°`; }
+  }
+
+  function setTelemetry(a) {
+    telAngle.textContent = a + '°';
+    telAngle.classList.toggle('warn', a > 140 && a < 175);
+    telAngle.classList.toggle('crit', a >= 175);
+    const grip = Math.round((a / 180) * 100);
+    telGrip.textContent = grip + '%';
+    telGrip.classList.toggle('warn', grip > 70);
+  }
+
+  function updateSlider(a) {
+    pwmNum.textContent = a;
+    dutyPct.textContent = Math.round((a / 180) * 100) + '%';
+    pwmSlider.value = a;
+  }
+  function updateHUD(a) {
+    hudX.textContent = String(120 + Math.round(Math.sin(a / 30) * 8)).padStart(3,'0');
+    hudY.textContent = String(45 + Math.round(a / 6)).padStart(3,'0');
+    hudZ.textContent = String(8 + Math.round(a / 40)).padStart(2,'0');
+  }
+
+  let lastPulse = -999;
+  function setAngle(newA, source = 'manual', silent = false) {
+    newA = clamp(Math.round(newA), 0, 180);
+    const prev = state.angle;
+    if (prev === newA && source === 'slider') return;
+    state.angle = newA;
+    applyArticulation(newA);
+    setBannerByAngle(newA);
+    setTelemetry(newA);
+    updateSlider(newA);
+    updateHUD(newA);
+    pushHistory(newA);
+
+    const crossed = (prev < 20 && newA >= 20) || (prev > 160 && newA <= 160) ||
+                    (prev >= 20 && newA < 20) || (prev <= 160 && newA > 160);
+    if (crossed && Math.abs(newA - lastPulse) > 10) {
+      handSvg.classList.remove('pulse');
+      void handSvg.offsetWidth;
+      handSvg.classList.add('pulse');
+      setTimeout(() => handSvg.classList.remove('pulse'), 700);
+      lastPulse = newA;
+    }
+    if (!silent && prev !== newA && soundEnabled) playServoMove(prev, newA);
+    if (!silent) {
+      if (source === 'open')       log('tx', `CMD ABRIR → PWM 0°`);
+      else if (source === 'close') log('tx', `CMD FECHAR → PWM 180°`);
+      else if (source === 'slider')log('tx', `PWM ajustado → ${newA}°`);
+      else if (source === 'voice') log('tx', `VOZ → ${newA}°`);
+      else if (source === 'drag')  log('tx', `ARRASTAR → PWM ${newA}°`);
+    }
+  }
+  function countCycle() { state.cycles++; telCycles.textContent = state.cycles; }
+
+  /* =============== CHART =============== */
+  const chart = $('pwmChart');
+  const cctx = chart.getContext('2d');
+  const HISTORY_MAX = 200;
+  function pushHistory(v) {
+    state.history.push(v);
+    if (state.history.length > HISTORY_MAX) state.history.shift();
+  }
+  function drawChart() {
+    const dpr = window.devicePixelRatio || 1;
+    const cw = chart.clientWidth, ch = 62;
+    chart.width = cw * dpr; chart.height = ch * dpr;
+    cctx.setTransform(1,0,0,1,0,0);
+    cctx.clearRect(0,0,chart.width,chart.height);
+    cctx.scale(dpr, dpr);
+
+    const style = getComputedStyle(rootEl);
+    const borderColor = style.getPropertyValue('--border').trim();
+    const accentColor = style.getPropertyValue('--accent').trim();
+    const instColor = style.getPropertyValue('--inst').trim();
+
+    cctx.strokeStyle = borderColor; cctx.lineWidth = 1;
+    for (let i=1;i<4;i++){ const y = (ch/4)*i; cctx.beginPath(); cctx.moveTo(0,y); cctx.lineTo(cw,y); cctx.stroke(); }
+    if (state.history.length < 2) return;
+
+    const step = cw / (HISTORY_MAX - 1);
+    const offset = cw - (state.history.length - 1) * step;
+    const t = state.angle / 180;
+    const color = t < .15 ? '#16A34A' : t > .85 ? accentColor : instColor;
+
+    cctx.beginPath();
+    state.history.forEach((v,i)=>{
+      const x = offset + i * step;
+      const y = ch - (v/180) * (ch-6) - 3;
+      if (i===0) cctx.moveTo(x,y); else cctx.lineTo(x,y);
+    });
+    const grad = cctx.createLinearGradient(0,0,0,ch);
+    grad.addColorStop(0, color + '55'); grad.addColorStop(1, color + '00');
+    cctx.lineTo(cw, ch); cctx.lineTo(offset, ch); cctx.closePath();
+    cctx.fillStyle = grad; cctx.fill();
+
+    cctx.beginPath();
+    state.history.forEach((v,i)=>{
+      const x = offset + i * step;
+      const y = ch - (v/180) * (ch-6) - 3;
+      if (i===0) cctx.moveTo(x,y); else cctx.lineTo(x,y);
+    });
+    cctx.strokeStyle = color; cctx.lineWidth = 2; cctx.lineJoin = 'round'; cctx.stroke();
+
+    const last = state.history[state.history.length-1];
+    const lastY = ch - (last/180) * (ch-6) - 3;
+    cctx.fillStyle = color; cctx.beginPath(); cctx.arc(cw-1,lastY,3.5,0,Math.PI*2); cctx.fill();
+    cctx.beginPath(); cctx.arc(cw-1,lastY,7,0,Math.PI*2); cctx.fillStyle = color + '33'; cctx.fill();
+  }
+  (function loop(){ drawChart(); requestAnimationFrame(loop); })();
+
+  pwmSlider.addEventListener('input', (e) => {
+    ensureAudio();
+    setAngle(parseInt(e.target.value,10), 'slider');
+  });
+
+  (function dragControl() {
+    const stage = $('stage');
+    let dragging = false, startX = 0, startAngle = 0, lastA = 0;
+    const onDown = (e) => {
+      const p = e.touches ? e.touches[0] : e;
+      dragging = true; startX = p.clientX; startAngle = state.angle; lastA = state.angle;
+      ensureAudio();
+    };
+    const onMove = (e) => {
+      if (!dragging) return;
+      const p = e.touches ? e.touches[0] : e;
+      const dx = p.clientX - startX;
+      const newA = clamp(startAngle + (dx / 220) * 180, 0, 180);
+      const r = Math.round(newA);
+      if (r !== lastA) { lastA = r; setAngle(r, 'drag', false); }
+      if (e.cancelable) e.preventDefault();
+    };
+    const onUp = () => { if (!dragging) return; dragging = false; countCycle(); };
+    stage.addEventListener('mousedown', onDown);
+    stage.addEventListener('touchstart', onDown, { passive: true });
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+  })();
+
+  function ripple(e) {
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    const r = document.createElement('span');
+    const size = Math.max(rect.width, rect.height);
+    r.className = 'ripple';
+    r.style.width = r.style.height = size + 'px';
+    r.style.left = (e.clientX - rect.left - size/2) + 'px';
+    r.style.top = (e.clientY - rect.top - size/2) + 'px';
+    btn.appendChild(r);
+    setTimeout(() => r.remove(), 600);
+  }
+  document.querySelectorAll('.btn').forEach(b => b.addEventListener('click', ripple));
+
+  let animRaf = null;
+  function animateTo(target, source) {
+    cancelAnimationFrame(animRaf);
+    const start = state.angle;
+    if (start === target) return;
+    const dur = 520, t0 = performance.now();
+    function step(now) {
+      const t = clamp((now - t0) / dur, 0, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const a = Math.round(lerp(start, target, eased));
+      setAngle(a, source, false);
+      if (t < 1) animRaf = requestAnimationFrame(step);
+      else countCycle();
+    }
+    animRaf = requestAnimationFrame(step);
+  }
+
+  $('btnOpen').addEventListener('click', () => {
+    ensureAudio(); if (state.isDemo) stopDemo(); animateTo(0, 'open');
+  });
+  $('btnClose').addEventListener('click', () => {
+    ensureAudio(); if (state.isDemo) stopDemo(); animateTo(180, 'close');
+  });
+
+  const btnDemo = $('btnDemo');
+  function startDemo() {
+    state.isDemo = true;
+    btnDemo.classList.add('active');
+    btnDemo.textContent = '⏸ Parar Demo';
+    log('ok', 'Modo demonstração iniciado');
+    let open = true;
+    state.demoTimer = setInterval(() => {
+      if (open) animateTo(180, 'close'); else animateTo(0, 'open');
+      open = !open;
+    }, 1900);
+  }
+  function stopDemo() {
+    state.isDemo = false;
+    btnDemo.classList.remove('active');
+    btnDemo.textContent = '▶ Demo Auto';
+    clearInterval(state.demoTimer);
+    state.demoTimer = null;
+    log('info', 'Modo demonstração finalizado');
+  }
+  btnDemo.addEventListener('click', () => {
+    ensureAudio();
+    state.isDemo ? stopDemo() : startDemo();
+  });
+
+  const btnDiag = $('btnDiag');
+  const diagSeq = [
+    { name: 'Polegar',   base: fingers.thumb.base,  phals: [fingers.thumb.phal2] },
+    { name: 'Indicador', base: fingers.index.base,  phals: [fingers.index.phal2, fingers.index.phal3] },
+    { name: 'Médio',     base: fingers.middle.base, phals: [fingers.middle.phal2, fingers.middle.phal3] },
+    { name: 'Anelar',    base: fingers.ring.base,   phals: [fingers.ring.phal2, fingers.ring.phal3] },
+    { name: 'Mínimo',    base: fingers.pinky.base,  phals: [fingers.pinky.phal2, fingers.pinky.phal3] }
+  ];
+  function runDiagnostic() {
+    if (state.isDiag) return;
+    state.isDiag = true;
+    btnDiag.classList.add('active');
+    btnDiag.textContent = '⏳ Testando...';
+    log('info', 'Iniciando diagnóstico individual');
+    const savedA = state.angle;
+    let i = 0;
+    const step = () => {
+      if (i >= diagSeq.length) {
+        state.isDiag = false;
+        btnDiag.classList.remove('active');
+        btnDiag.textContent = '⚙ Diagnóstico';
+        log('ok', 'Diagnóstico concluído · 5/5 dedos OK');
+        toast('Diagnóstico concluído · todos OK', 'ok');
+        setAngle(savedA, 'manual', true);
+        return;
+      }
+      const f = diagSeq[i];
+      log('tx', `Testando ${f.name}...`);
+      playBeep(660 + i * 80, .1, .04);
+      const origBase = f.base.style.transform || '';
+      const origPhals = f.phals.map(p => p.style.transform || '');
+      f.base.style.transition = 'transform .22s cubic-bezier(.34,1.56,.64,1)';
+      f.phals.forEach(p => p.style.transition = 'transform .22s cubic-bezier(.34,1.56,.64,1)');
+      f.base.style.transform = 'rotate(-12deg) scale(.98)';
+      f.phals.forEach(p => p.style.transform = 'rotate(45deg)');
+      setTimeout(() => {
+        f.base.style.transform = origBase;
+        f.phals.forEach((p, idx) => p.style.transform = origPhals[idx]);
+        setTimeout(() => {
+          f.base.style.transition = '';
+          f.phals.forEach(p => p.style.transition = '');
+          i++; step();
+        }, 280);
+      }, 240);
+    };
+    step();
+  }
+  btnDiag.addEventListener('click', () => {
+    ensureAudio(); if (state.isDemo) stopDemo(); runDiagnostic();
+  });
+
+  const btnEdu = $('btnEdu');
+  const visor = $('visor');
+  const eduTip = $('eduTip');
+  let eduActive = false;
+  btnEdu.addEventListener('click', () => {
+    eduActive = !eduActive;
+    visor.classList.toggle('edu-on', eduActive);
+    btnEdu.classList.toggle('active', eduActive);
+    btnEdu.textContent = eduActive ? '📖 Sair' : '📖 Educacional';
+    log('info', `Modo educacional ${eduActive ? 'ativado' : 'desativado'}`);
+    if (!eduActive) eduTip.classList.remove('show');
+  });
+  document.querySelectorAll('.edu-hotspot').forEach(hs => {
+    const show = () => {
+      $('eduTipTitle').textContent = hs.dataset.title;
+      $('eduTipDesc').textContent = hs.dataset.desc;
+      const wrapRect = $('handWrap').getBoundingClientRect();
+      const hsRect = hs.getBoundingClientRect();
+      eduTip.style.left = (hsRect.left - wrapRect.left + hsRect.width + 10) + 'px';
+      eduTip.style.top = (hsRect.top - wrapRect.top - 8) + 'px';
+      eduTip.classList.add('show');
+    };
+    hs.addEventListener('mouseenter', show);
+    hs.addEventListener('mouseleave', () => eduTip.classList.remove('show'));
+    hs.addEventListener('click', show);
+  });
+
+  const micBtn = $('micBtn');
+  const micTitle = $('micTitle');
+  const micSub = $('micSub');
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) {
+    const rec = new SR();
+    rec.lang = 'pt-BR';
+    rec.continuous = false;
+    rec.interimResults = false;
+    micBtn.addEventListener('click', () => {
+      ensureAudio();
+      try { rec.start(); micBtn.classList.add('listening'); micTitle.textContent = 'Ouvindo...'; micSub.textContent = 'Fale agora'; } catch(e){}
+    });
+    rec.onresult = (e) => {
+      const txt = e.results[0][0].transcript.toLowerCase().trim();
+      micSub.textContent = `"${txt}"`;
+      log('info', `Voz: "${txt}"`);
+      if (txt.includes('abrir') || txt.includes('abra') || txt.includes('abre')) { animateTo(0, 'voice'); toast('Comando: ABRIR','ok'); }
+      else if (txt.includes('fechar') || txt.includes('feche') || txt.includes('fecha')) { animateTo(180, 'voice'); toast('Comando: FECHAR','ok'); }
+      else { log('warn', `Comando não reconhecido: "${txt}"`); toast('Comando inválido','err'); }
+    };
+    rec.onend = () => { micBtn.classList.remove('listening'); micTitle.textContent = 'Ativar Reconhecimento'; micSub.textContent = 'Diga "abrir" ou "fechar"'; };
+    rec.onerror = (e) => { micBtn.classList.remove('listening'); micTitle.textContent = 'Erro no microfone'; micSub.textContent = 'Tente novamente'; log('err', `SpeechRecognition: ${e.error}`); };
+  } else {
+    micBtn.disabled = true;
+    micTitle.textContent = 'Voz não suportada';
+    micSub.textContent = 'Use slider ou botões';
+    log('warn', 'Web Speech API indisponível');
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.dataset.panel === tab));
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); setAngle(state.angle - 5, 'slider'); }
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); setAngle(state.angle + 5, 'slider'); }
+    else if (e.key === 'o' || e.key === 'O') { animateTo(0, 'open'); }
+    else if (e.key === 'c' || e.key === 'C') { animateTo(180, 'close'); }
+    else if (e.key === 'd' || e.key === 'D') { state.isDemo ? stopDemo() : startDemo(); }
+  });
+
+  setInterval(() => {
+    const target = 24 + (state.angle / 180) * 6 + Math.random() * 1.5;
+    state.temp = state.temp + (target - state.temp) * .35;
+    telTemp.textContent = state.temp.toFixed(0) + '°C';
+    telTemp.classList.toggle('warn', state.temp > 27);
+    telTemp.classList.toggle('crit', state.temp > 30);
+  }, 2000);
+
+  function bootstrap() {
+    log('info', 'Simulador v5.0 inicializado · 15 falanges');
+    setTimeout(() => log('ok', 'Arduino conectado · /dev/ttyUSB0 @ 9600'), 350);
+    setTimeout(() => log('ok', 'Servo SG90 calibrado · 0°–180°'), 700);
+    setTimeout(() => { setAngle(0, 'open', true); log('info', 'Mão em repouso (0°)'); }, 1100);
+    setTimeout(() => toast('Simulador pronto · arraste a mão ou use o slider', 'ok'), 1500);
+  }
+  bootstrap();
+
+  console.log('%c🦾 Simulador v5.0 · dark mode preto alinhado', 'color:#FF9A2E;font-weight:bold;font-size:12px;');
+})();
+</script>
+</body>
+</html>

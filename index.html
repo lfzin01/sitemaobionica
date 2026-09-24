@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TCC | Mão Robótica Controlada por Arduino</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  
+  <canvas id="animated-bg" aria-hidden="true"></canvas>
+  <canvas id="bg-canvas-dark"></canvas>
+  <canvas id="bg-canvas-light"></canvas>
+
+  <div class="ambient-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebarTriggerZone" class="sidebar-trigger-zone"></div>
+  <aside id="hoverSidebar" class="hover-sidebar">
+    <div class="sidebar-header">
+      <div class="tech-tag">LABORATÓRIO MECATRÔNICO</div>
+      <span class="sidebar-title">Mão Robótica v1.0</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#inicio" class="sidebar-link active">Início</a>
+      <a href="#demonstracao-video" class="sidebar-link">O Protótipo em Ação</a>
+      <a href="#visao-laboratorio" class="sidebar-link">Anatomia do Protótipo</a>
+      <a href="#galeria" class="sidebar-link">Galeria do Projeto</a>
+      <a href="#equipe" class="sidebar-link">Nossa Equipe</a>
+      <a href="#simulador" class="sidebar-link">Simulador Binário</a>
+      <a href="#como-funciona" class="sidebar-link">Arquitetura Técnica</a>
+      <a href="#reserva" class="sidebar-link">Agendar Teste</a>
+      <a href="#tcc-info" class="sidebar-link">Resumo do TCC</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div id="sidebarUserArea">
+        <button class="btn btn-outline btn-full" onclick="window.openAuthModal()">Entrar / Cadastrar</button>
+      </div>
+    </div>
+  </aside>
+
+  <div id="sidebarIndicator" class="sidebar-indicator" title="Menu">
+    <span class="hamburger-icon">
+      <span></span><span></span><span></span>
+    </span>
+    <span class="indicator-label">MENU</span>
+  </div>
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <div class="container nav-content">
+      <a href="#inicio" class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 11V6a2 2 0 0 0-4 0v5"/>
+            <path d="M14 10V4a2 2 0 0 0-4 0v6"/>
+            <path d="M10 10.5V6a2 2 0 0 0-4 0v8"/>
+            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-tag">TCC • IFNMG</span>
+          <span class="brand-name">Mão Robótica Arduino<span class="accent-dot">.</span>ino</span>
+        </div>
+      </a>
+
+      <div class="nav-right">
+        <button id="themeToggleBtn" class="theme-toggle" title="Alternar tema" aria-label="Alternar tema">
+          <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+          <svg class="theme-icon moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+
+        <div id="topUserNav">
+          <button class="btn btn-primary" onclick="window.openAuthModal()">Minha Conta</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="systemToast" class="system-toast hidden"></div>
+
+  <main>
+    <!-- HERO -->
+    <section id="inicio" class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-data">
+          <div class="tech-badge badge-live">
+            <span class="live-dot"></span>
+            PROJETO DE REABILITAÇÃO ASSISTIVA
+          </div>
+
+          <h1 class="hero-title">
+            Uma mão robótica que
+            <span class="hero-gradient">devolve movimento</span>
+            por uma fração do custo.
+          </h1>
+
+          <p class="hero-description">
+            Prótese subatuada impressa em 3D, controlada por Arduino Uno e
+            servomotores SG90. Operação binária de alta confiabilidade —
+            abrir e fechar — pensada para reabilitação assistiva acessível.
+          </p>
+
+          <div class="hero-actions">
+            <a href="simulador.html" class="btn-hero-primary">
+              <span>TESTAR SIMULADOR</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
+                <path d="M5 12h14M13 6l6 6-6 6"/>
+              </svg>
+            </a>
+            <a href="#como-funciona" class="btn-hero-outline">ADQUIRIR</a>
+          </div>
+
+          <div class="proof-bar">
+            <div class="proof-card">
+              <div class="proof-value">
+                <span class="proof-number" data-target="380">0</span><span class="proof-unit">ms</span>
+              </div>
+              <div class="proof-label">TEMPO DE RESPOSTA</div>
+            </div>
+            <div class="proof-card">
+              <div class="proof-value"><span class="proof-number" data-target="2">0</span></div>
+              <div class="proof-label">ESTADOS FÍSICOS</div>
+            </div>
+            <div class="proof-card">
+              <div class="proof-value">
+                <span class="proof-number" data-target="100">0</span><span class="proof-unit">%</span>
+              </div>
+              <div class="proof-label">HARDWARE LIVRE</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-display" data-parallax>
+          <div class="hero-hand-stage">
+            <div class="float-label label-tl"><span class="label-dot"></span>SERVO: <strong>ATIVO</strong></div>
+            <div class="float-label label-r"><span class="label-mono">PWM</span> · 0°—180°</div>
+            <div class="float-label label-bl">MODEL · <strong>SG90 × 5</strong></div>
+
+            <div class="hero-ring ring-outer"></div>
+            <div class="hero-ring ring-inner"></div>
+            <div class="hero-image-glow"></div>
+
+            <img id="heroHandImage" src="imagemmao.jpg" alt="Protótipo da Mão Robótica Arduino" class="hero-hand-image" loading="eager" draggable="false" />
+
+            <div class="hero-image-badge"><span class="badge-dot"></span>PROTÓTIPO REAL</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VÍDEO -->
+    <section id="demonstracao-video" class="section-block bg-glass">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle">// VÍDEO EM TEMPO REAL</span>
+          <h2>A Mão Robótica em Funcionamento</h2>
+          <p>Demonstração visual do acionamento dos servomotores e resposta aos comandos vocais.</p>
+        </div>
+        <div class="video-showcase-box">
+          <div class="video-frame" style="background: #000; padding: 0.5rem; border-radius: 12px;">
+            <video controls autoplay muted loop style="width:100%; max-height:500px; border-radius:8px; display:block;">
+              <source src="videomao.mp4" type="video/mp4">
+              Seu navegador não suporta vídeo HTML5.
+            </video>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANATOMIA -->
+    <section id="visao-laboratorio" class="section-block">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle">// ANATOMIA DO PROTÓTIPO</span>
+          <h2>A mecânica e a biomecânica das próteses</h2>
+          <p>Cada componente foi escolhido para equilibrar custo, desempenho e facilidade de reprodução.</p>
+        </div>
+
+        <div class="anatomy-grid">
+          <div class="anatomy-card" data-part="arduino">
+            <div class="anatomy-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6" rx="1"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></svg></div>
+            <span class="anatomy-tag tag-eletronica">ELETRÔNICA</span>
+            <h3>Controlado por Arduino</h3>
+            <p>O microcontrolador ATmega328P processa os sinais e gera os pulsos PWM que comandam cada servomotor da prótese.</p>
+            <div class="anatomy-specs"><span><strong>MCU:</strong> ATmega328P</span><span><strong>PWM:</strong> 50Hz</span></div>
+          </div>
+          <div class="anatomy-card" data-part="servos">
+            <div class="anatomy-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></div>
+            <span class="anatomy-tag tag-mecanica">MECÂNICA</span>
+            <h3>Servomotores SG90</h3>
+            <p>Cinco micro servos de 4.8V atuam individualmente em cada dedo, oferecendo torque suficiente para tarefas de preensão.</p>
+            <div class="anatomy-specs"><span><strong>Torque:</strong> 2.5 kg·cm</span><span><strong>Curso:</strong> 0°–180°</span></div>
+          </div>
+          <div class="anatomy-card" data-part="estrutura">
+            <div class="anatomy-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+            <span class="anatomy-tag tag-estrutura">ESTRUTURA</span>
+            <h3>Impressão 3D em PLA</h3>
+            <p>As falanges e a palma são impressas em PLA, permitindo personalização, leveza e manutenção simplificada do protótipo.</p>
+            <div class="anatomy-specs"><span><strong>Material:</strong> PLA 1.75mm</span><span><strong>Infill:</strong> 20%</span></div>
+          </div>
+          <div class="anatomy-card" data-part="alimentacao">
+            <div class="anatomy-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+            <span class="anatomy-tag tag-eletronica">ELETRÔNICA</span>
+            <h3>Alimentação Externa</h3>
+            <p>Os servos são alimentados por fonte externa de 5V/2A, evitando sobrecarga da porta USB do Arduino.</p>
+            <div class="anatomy-specs"><span><strong>Fonte:</strong> 5V / 2A</span><span><strong>Driver:</strong> Buck LM2596</span></div>
+          </div>
+          <div class="anatomy-card" data-part="comunicacao">
+            <div class="anatomy-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>
+            <span class="anatomy-tag tag-software">SOFTWARE</span>
+            <h3>Comunicação Serial</h3>
+            <p>O Arduino se comunica via porta serial (9600 baud) com o software de controle, recebendo comandos em tempo real.</p>
+            <div class="anatomy-specs"><span><strong>Baud:</strong> 9600</span><span><strong>Protocolo:</strong> UART</span></div>
+          </div>
+          <div class="anatomy-card" data-part="atuacao">
+            <div class="anatomy-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg></div>
+            <span class="anatomy-tag tag-mecanica">MECÂNICA</span>
+            <h3>Atuação Binária</h3>
+            <p>O movimento é estritamente binário — abrir ou fechar — garantindo máxima confiabilidade e simplicidade operacional.</p>
+            <div class="anatomy-specs"><span><strong>Estados:</strong> 2</span><span><strong>Resposta:</strong> 380ms</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALERIA -->
+    <section id="galeria" class="section-block bg-glass">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle">// REGISTRO DE DESENVOLVIMENTO</span>
+          <h2>Galeria de Fotos do Protótipo</h2>
+          <p>Imagens reais do processo de modelagem 3D, circuitos eletrônicos, montagem e testes finais.</p>
+        </div>
+
+        <div class="gallery-filters">
+          <button class="filter-btn active" data-filter="all">Todos</button>
+          <button class="filter-btn" data-filter="estrutura">Estrutura</button>
+          <button class="filter-btn" data-filter="eletronica">Eletrônica</button>
+          <button class="filter-btn" data-filter="teste">Testes</button>
+          <button class="filter-btn" data-filter="montagem">Montagem</button>
+        </div>
+
+        <div class="gallery-grid masonry">
+          <div class="gallery-item" data-category="estrutura" onclick="window.openLightbox('https://images.unsplash.com/photo-1615821086331-834e5c7d1d6d?auto=format&fit=crop&w=1200&q=80', 'Impressão 3D e Estrutura Mecânica - Falanges')">
+            <img src="https://images.unsplash.com/photo-1615821086331-834e5c7d1d6d?auto=format&fit=crop&w=600&q=80" alt="Estrutura 3D" />
+            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Impressão 3D dos Falanges</h4></div>
+          </div>
+          <div class="gallery-item" data-category="eletronica" onclick="window.openLightbox('https://images.unsplash.com/photo-1553406830-ef2513450d76?auto=format&fit=crop&w=1200&q=80', 'Placa de Controle Arduino e Fiação')">
+            <img src="https://images.unsplash.com/photo-1553406830-ef2513450d76?auto=format&fit=crop&w=600&q=80" alt="Circuito Arduino" />
+            <div class="gallery-overlay"><span class="gallery-tag">ELETRÔNICA</span><h4>Módulo Arduino & Servos</h4></div>
+          </div>
+          <div class="gallery-item" data-category="teste" onclick="window.openLightbox('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80', 'Protótipo Completo em Teste de Bancada')">
+            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80" alt="Teste de Bancada" />
+            <div class="gallery-overlay"><span class="gallery-tag">TESTE</span><h4>Ensaio de Preensão</h4></div>
+          </div>
+          <div class="gallery-item" data-category="montagem" onclick="window.openLightbox('https://images.unsplash.com/photo-1581092335397-9583eb92d232?auto=format&fit=crop&w=1200&q=80', 'Montagem dos Servomotores na Palma')">
+            <img src="https://images.unsplash.com/photo-1581092335397-9583eb92d232?auto=format&fit=crop&w=600&q=80" alt="Montagem dos Servos" />
+            <div class="gallery-overlay"><span class="gallery-tag">MONTAGEM</span><h4>Instalação dos Servos</h4></div>
+          </div>
+          <div class="gallery-item" data-category="estrutura" onclick="window.openLightbox('https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=1200&q=80', 'Detalhe da Articulação dos Dedos')">
+            <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=600&q=80" alt="Articulação" />
+            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Detalhe da Articulação</h4></div>
+          </div>
+          <div class="gallery-item" data-category="eletronica" onclick="window.openLightbox('https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&w=1200&q=80', 'Fiação e Conexões Elétricas')">
+            <img src="https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&w=600&q=80" alt="Fiação" />
+            <div class="gallery-overlay"><span class="gallery-tag">ELETRÔNICA</span><h4>Fiação e Conexões</h4></div>
+          </div>
+          <div class="gallery-item" data-category="teste" onclick="window.openLightbox('https://images.unsplash.com/photo-1581093458791-9f302e6d4a4e?auto=format&fit=crop&w=1200&q=80', 'Teste de Resposta dos Servomotores')">
+            <img src="https://images.unsplash.com/photo-1581093458791-9f302e6d4a4e?auto=format&fit=crop&w=600&q=80" alt="Teste de Servo" />
+            <div class="gallery-overlay"><span class="gallery-tag">TESTE</span><h4>Teste de Resposta</h4></div>
+          </div>
+          <div class="gallery-item" data-category="montagem" onclick="window.openLightbox('https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1200&q=80', 'Montagem Final da Mão Robótica')">
+            <img src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=600&q=80" alt="Montagem Final" />
+            <div class="gallery-overlay"><span class="gallery-tag">MONTAGEM</span><h4>Montagem Final</h4></div>
+          </div>
+          <div class="gallery-item" data-category="estrutura" onclick="window.openLightbox('https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1200&q=80', 'Vista Explodida da Estrutura')">
+            <img src="https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=600&q=80" alt="Vista Explodida" />
+            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Vista Explodida</h4></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EQUIPE -->
+    <section id="equipe" class="section-block">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle">// QUEM SOMOS</span>
+          <h2>Equipe de Desenvolvimento</h2>
+          <p>Conheça os alunos e pesquisadores por trás deste projeto de TCC.</p>
+        </div>
+        <div class="team-grid">
+          <div class="team-card" data-tilt>
+            <div class="team-avatar-ring"><div class="team-avatar" style="background: var(--institucional);"><span>LG</span></div></div>
+            <h3>Luis G</h3><p class="team-role">Engenharia Mecatrônica</p>
+            <p class="team-desc">Responsável pela modelagem 3D e impressão das peças do protótipo.</p>
+            <div class="team-skills"><span class="skill-chip">🛠️ CAD</span><span class="skill-chip">🖨️ Impressão 3D</span></div>
+          </div>
+          <div class="team-card" data-tilt>
+            <div class="team-avatar-ring"><div class="team-avatar" style="background: var(--accent);"><span>LH</span></div></div>
+            <h3>Luiz H</h3><p class="team-role">Engenharia de Controle</p>
+            <p class="team-desc">Desenvolveu o código de acionamento dos servomotores e a lógica binária.</p>
+            <div class="team-skills"><span class="skill-chip">⚙️ Arduino</span><span class="skill-chip">💻 C++</span></div>
+          </div>
+          <div class="team-card" data-tilt>
+            <div class="team-avatar-ring"><div class="team-avatar" style="background: var(--institucional-dark);"><span>MJ</span></div></div>
+            <h3>Milton José</h3><p class="team-role">Design e Interface</p>
+            <p class="team-desc">Criou a identidade visual, o site e a experiência do usuário.</p>
+            <div class="team-skills"><span class="skill-chip">🎨 UI/UX</span><span class="skill-chip">💻 Front-end</span></div>
+          </div>
+          <div class="team-card" data-tilt>
+            <div class="team-avatar-ring"><div class="team-avatar" style="background: var(--success);"><span>LF</span></div></div>
+            <h3>Luiz F</h3><p class="team-role">Pesquisa e Validação</p>
+            <p class="team-desc">Realizou testes de usabilidade e documentação do projeto.</p>
+            <div class="team-skills"><span class="skill-chip">📊 Testes</span><span class="skill-chip">📄 Documentação</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIMULADOR -->
+    <section id="simulador" class="section-block">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle">// INTERFACE DE COMANDO</span>
+          <h2>Simulador de Controle Vocal & Manual</h2>
+          <p>Verifique o acionamento binário em tempo real utilizando comandos por voz ou controle direto.</p>
+        </div>
+        <div style="text-align:center; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 3rem 2rem; max-width: 700px; margin: 0 auto;">
+          <div style="width: 80px; height: 100px; margin: 0 auto 1.2rem;">
+            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%; display:block;">
+              <style>
+                .hand-palm-s { fill: #0f1a2a; stroke: #2a4a6a; stroke-width: 1.5; }
+                .hand-finger-s { fill: #1a3a6a; stroke: #2a4a7a; stroke-width: 1.2; transform-origin: bottom; animation: fingerMove 2.8s ease-in-out infinite alternate; }
+                @keyframes fingerMove { 0% { transform: scaleY(1); } 100% { transform: scaleY(0.3); } }
+              </style>
+              <path d="M 25,45 Q 20,85 35,85 L 65,85 Q 80,85 75,45 Z" class="hand-palm-s" />
+              <rect x="30" y="85" width="40" height="30" rx="6" class="hand-palm-s" />
+              <g class="hand-finger-s" style="transform-origin: 14px 72px;"><rect x="10" y="48" width="8" height="28" rx="4" /></g>
+              <g class="hand-finger-s" style="transform-origin: 29px 52px;"><rect x="25" y="10" width="8" height="46" rx="4" /></g>
+              <g class="hand-finger-s" style="transform-origin: 42px 52px;"><rect x="38" y="5" width="8" height="50" rx="4" /></g>
+              <g class="hand-finger-s" style="transform-origin: 55px 52px;"><rect x="51" y="10" width="8" height="46" rx="4" /></g>
+              <g class="hand-finger-s" style="transform-origin: 68px 52px;"><rect x="64" y="22" width="8" height="36" rx="4" /></g>
+            </svg>
+          </div>
+          <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Teste a Mão Robótica</h3>
+          <p style="color: var(--text-muted); margin-bottom: 2rem;">Abra o simulador completo para controlar a mão com botões ou por voz.</p>
+          <a href="simulador.html" target="_blank" class="btn btn-primary" style="font-size:1.2rem; padding:1rem 2.5rem;">🚀 ABRIR SIMULADOR</a>
+          <p style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted);">O simulador abrirá em uma nova aba. Funciona com reconhecimento de voz (Chrome/Edge).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PIPELINE -->
+    <section id="como-funciona" class="section-block bg-glass">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle">// FLUXO DE EXECUÇÃO</span>
+          <h2>Arquitetura do Sinal</h2>
+          <p>O percurso do sinal acústico até a movimentação física do protótipo.</p>
+        </div>
+        <div class="pipeline-grid">
+          <div class="pipe-step"><div class="pipe-icon">🎙️</div><span class="pipe-num">01</span><h4>Comando de Voz</h4><p>Processado via Web Speech API no navegador.</p></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step"><div class="pipe-icon">⚡</div><span class="pipe-num">02</span><h4>Decodificação Binária</h4><p>Tradução estrita em instrução ABRIR ou FECHAR.</p></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step"><div class="pipe-icon">🔌</div><span class="pipe-num">03</span><h4>Arduino Uno</h4><p>Geração do pulso PWM (0° / 180°).</p></div>
+          <div class="pipe-arrow">→</div>
+          <div class="pipe-step"><div class="pipe-icon">🦾</div><span class="pipe-num">04</span><h4>Atuação Mecânica</h4><p>Flexão ou extensão dos cabos dos dedos.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESERVA -->
+    <section id="reserva" class="section-block cta-block">
+      <div class="container">
+        <div class="cta-card">
+          <span class="section-subtitle">Adquira já</span>
+          <h2>Garanta a sua Mão Robótica</h2>
+          <p>Clique no botão abaixo para iniciar o processo de aquisição do protótipo.</p>
+          <button id="btnAdquirir" class="btn btn-cta">Quero Adquirir</button>
+          <div id="msgLoginNecessario" class="login-hint" style="display:none;">Faça login para prosseguir com a aquisição.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TCC INFO -->
+    <section id="tcc-info" class="section-block bg-glass">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-subtitle">// FUNDAMENTAÇÃO ACADÊMICA</span>
+          <h2>Trabalho de Conclusão de Curso</h2>
+          <p>Visão geral da pesquisa científica e desenvolvimento mecatrônico.</p>
+        </div>
+        <div class="academic-grid">
+          <div class="academic-card"><h4>01. O Problema</h4><p>O custo elevado de próteses ativas no mercado limita o acesso de pessoas amputadas em países emergentes.</p></div>
+          <div class="academic-card"><h4>02. A Solução</h4><p>Uma prótese robótica de baixo custo, manufaturada em impressão 3D e acionada por componentes acessíveis.</p></div>
+          <div class="academic-card"><h4>03. Restrição de Escopo</h4><p>Operação estritamente binária (Abrir/Fechar) para garantir máxima confiabilidade e simplicidade operacional.</p></div>
+          <div class="academic-card"><h4>04. Conclusão</h4><p>O tempo de resposta de 380ms valida a aplicabilidade da mão em tarefas cotidianas de preensão assistida.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- MODAL AUTENTICAÇÃO PREMIUM -->
+  <div id="authModal" class="modal-backdrop">
+    <div class="modal-card auth-card">
+      <button class="modal-close-btn" onclick="window.closeAuthModal()">&times;</button>
+      
+      <div class="auth-header">
+        <div class="auth-icon-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <h2 id="authTitle">Bem-vindo de volta</h2>
+        <p id="authSubtitle">Acesse sua conta para gerenciar o projeto</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="tabBtnLogin" class="tab-btn active" onclick="window.switchAuthTab('login')">Entrar</button>
+        <button id="tabBtnRegister" class="tab-btn" onclick="window.switchAuthTab('register')">Criar Conta</button>
+      </div>
+      
+      <div id="authAlert" class="auth-alert hidden"></div>
+      
+      <form id="loginForm" class="auth-form-content">
+        <div class="field-group input-icon-group">
+          <label for="loginEmail">E-mail</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            <input type="email" id="loginEmail" class="input-ctrl" placeholder="seu@email.com" required />
+          </div>
+        </div>
+        <div class="field-group input-icon-group">
+          <label for="loginPassword">Senha</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <input type="password" id="loginPassword" class="input-ctrl" placeholder="••••••••" required />
+            <button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)">👁️</button>
+          </div>
+        </div>
+        <div class="auth-options">
+          <a href="#" onclick="window.resetPassword(event)" class="forgot-link">Esqueceu a senha?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="btnLoginSubmit">
+          <span class="btn-text">Entrar</span>
+          <span class="spinner hidden"></span>
+        </button>
+      </form>
+
+      <form id="registerForm" class="auth-form-content hidden">
+        <div class="field-group input-icon-group">
+          <label for="regName">Nome Completo</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <input type="text" id="regName" class="input-ctrl" placeholder="Seu nome completo" required />
+          </div>
+        </div>
+        <div class="field-group input-icon-group">
+          <label for="regEmail">E-mail</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            <input type="email" id="regEmail" class="input-ctrl" placeholder="seu@email.com" required />
+          </div>
+        </div>
+        <div class="field-group input-icon-group">
+          <label for="regPassword">Senha</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <input type="password" id="regPassword" class="input-ctrl" placeholder="Mínimo 6 caracteres" required minlength="6" />
+            <button type="button" class="toggle-password" onclick="togglePassword('regPassword', this)">👁️</button>
+          </div>
+          <div class="password-strength" id="passStrength"></div>
+        </div>
+        <div class="field-group input-icon-group">
+          <label for="regPasswordConfirm">Confirmar Senha</label>
+          <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <input type="password" id="regPasswordConfirm" class="input-ctrl" placeholder="••••••••" required />
+            <button type="button" class="toggle-password" onclick="togglePassword('regPasswordConfirm', this)">👁️</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="btnRegisterSubmit">
+          <span class="btn-text">Criar Conta</span>
+          <span class="spinner hidden"></span>
+        </button>
+        <p class="terms-text">Ao criar uma conta, você concorda com nossos <a href="#">Termos de Uso</a> e <a href="#">Política de Privacidade</a>.</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMAÇÃO DE LOGOUT -->
+  <div id="confirmLogoutModal" class="modal-backdrop">
+    <div class="modal-card confirm-card">
+      <div class="confirm-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </div>
+      <h3>Confirmar saída</h3>
+      <p>Tem certeza que deseja sair da sua conta? Você precisará fazer login novamente para acessar o conteúdo.</p>
+      <div class="confirm-actions">
+        <button class="btn btn-outline" onclick="window.cancelLogout()">Cancelar</button>
+        <button class="btn btn-danger" onclick="window.confirmLogout()">Sim, sair</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LIGHTBOX -->
+  <div id="lightboxModal" class="modal-backdrop" onclick="window.closeLightbox()">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <button class="modal-close-btn" onclick="window.closeLightbox()">&times;</button>
+      <img id="lightboxImg" src="" alt="Ampliação de Foto" />
+      <div id="lightboxCaption" class="lightbox-caption"></div>
+    </div>
+  </div>
+
+  <button id="helpBtn" class="help-btn" title="Ajuda / Contato"><span>?</span></button>
+
+  <div id="helpModal" class="help-modal-backdrop">
+    <div class="help-modal-content">
+      <button class="help-modal-close" id="helpModalClose">&times;</button>
+      <h2>💬 Precisa de ajuda?</h2>
+      <p>Envie uma mensagem direta para nosso suporte. Responderemos o mais rápido possível.</p>
+      <form id="helpForm">
+        <div class="field-group"><label for="helpName">Seu nome</label><input type="text" id="helpName" class="input-ctrl" placeholder="Seu nome" required /></div>
+        <div class="field-group"><label for="helpEmail">Seu e-mail</label><input type="email" id="helpEmail" class="input-ctrl" placeholder="seu@email.com" required /></div>
+        <div class="field-group"><label for="helpMessage">Mensagem</label><textarea id="helpMessage" class="input-ctrl" rows="4" placeholder="Descreva sua dúvida ou sugestão..." required></textarea></div>
+        <button type="submit" class="btn btn-primary btn-full" id="helpSubmitBtn">Enviar Mensagem</button>
+      </form>
+      <div id="helpFeedback" style="margin-top:1rem; display:none;"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-flex">
+      <span>TCC Mão Robótica Arduino &copy; 2026</span>
+      <span>Engenharia &amp; Mecatrônica</span>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
