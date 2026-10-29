@@ -36,9 +36,6 @@
   --smooth:cubic-bezier(.16,1,.3,1);
 }
 
-/* ============================================================
-   TEMA ESCURO — PRETO PURO (ALINHADO COM O INDEX)
-   ============================================================ */
 :root[data-theme="dark"] {
   --bg-0:#000000; --bg-card:#0F0F0F; --bg-glass:rgba(15,15,15,.85);
   --border:rgba(255,255,255,.08);
@@ -75,25 +72,15 @@ body{
   position:relative;
 }
 
-/* ============ FUNDO ANIMADO ============ */
 #bgCanvas{
-  position:fixed;
-  inset:0;
-  width:100%;
-  height:100%;
-  z-index:-1;
-  pointer-events:none;
-  display:block;
-  opacity:.85;
-  transition:opacity .6s;
+  position:fixed;inset:0;width:100%;height:100%;
+  z-index:-1;pointer-events:none;display:block;
+  opacity:.85;transition:opacity .6s;
 }
-@media (prefers-reduced-motion:reduce){
-  #bgCanvas{display:none;}
-}
+@media (prefers-reduced-motion:reduce){ #bgCanvas{display:none;} }
 
 .page{max-width:1320px;margin:0 auto;padding:1.25rem 1.25rem 2.5rem;position:relative;z-index:1;}
 
-/* ============ TOPBAR ============ */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;gap:1rem;
   padding:.9rem 1.15rem;background:var(--bg-glass);
@@ -155,10 +142,8 @@ body{
 }
 .back-btn:hover{border-color:var(--inst);color:var(--inst);transform:translateY(-2px);}
 
-/* ============ GRID ============ */
 .sim-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:1.5rem;align-items:start;}
 
-/* ============ VISOR ============ */
 .visor{
   position:relative;background:var(--visor-bg);border:1px solid var(--border);
   border-radius:var(--r-lg);padding:1.25rem 1.25rem 1rem;overflow:hidden;
@@ -223,7 +208,6 @@ body{
 }
 .hand-wrap{position:relative;width:100%;max-width:420px;z-index:3;}
 
-/* ============ MÃO SVG ============ */
 .hand-svg{
   width:100%;height:auto;display:block;
   filter:drop-shadow(0 18px 38px rgba(11,105,163,.22));
@@ -249,10 +233,8 @@ body{
 .palm-shine{fill:url(#palmShine);}
 .palm-circuit{fill:none;stroke:var(--hand-edge);stroke-width:.6;opacity:.4;}
 .core-ring{fill:none;stroke:var(--hand-led);stroke-width:1.2;filter:drop-shadow(0 0 4px var(--hand-led));}
-
 .hand-svg .fal{transform:rotate(0);}
 .hand-svg.tight .j-led{fill:var(--hand-led-closed);filter:drop-shadow(0 0 6px var(--hand-led-closed));}
-
 .hand-svg.pulse{animation:handPulse .65s ease;}
 @keyframes handPulse{
   0%,100%{filter:drop-shadow(0 18px 38px rgba(11,105,163,.22));}
@@ -364,7 +346,6 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
 .btn.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);}
 .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
 
-/* Botões no tema escuro usam amber para dar contraste no preto */
 [data-theme="dark"] .btn-primary{
   background:linear-gradient(135deg,var(--accent),var(--accent-hover));
   color:#0A0A0A;
@@ -373,6 +354,45 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
 [data-theme="dark"] .btn-primary:hover{
   color:#0A0A0A;
   box-shadow:0 10px 28px rgba(255,154,46,.5);
+}
+
+/* ============ CONEXÃO COM A MÃO FÍSICA ============ */
+.connect-row{display:flex;gap:.5rem;align-items:stretch;}
+.connect-input{
+  flex:1;padding:.65rem .8rem;border-radius:10px;background:var(--bg-card);
+  border:1px solid var(--border);color:var(--text-1);
+  font-family:var(--font-mono);font-size:.82rem;outline:none;
+  transition:border-color .25s, box-shadow .25s;min-width:0;
+}
+.connect-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.connect-input::placeholder{color:var(--text-3);}
+#btnConnect{flex-shrink:0;min-width:130px;}
+#btnConnect.active{
+  background:linear-gradient(135deg,var(--danger),#B91C1C);
+  border-color:transparent;color:#fff;
+  box-shadow:0 8px 22px rgba(220,38,38,.35);
+}
+#btnConnect.active:hover{
+  background:linear-gradient(135deg,#B91C1C,#991B1B);
+  box-shadow:0 10px 28px rgba(220,38,38,.5);
+}
+.connect-hint{
+  font-size:.7rem;color:var(--text-3);margin-top:.55rem;font-family:var(--font-mono);
+  line-height:1.5;
+}
+.ws-status-dot{
+  display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--text-3);margin-right:5px;vertical-align:middle;
+  transition:background .3s, box-shadow .3s;
+}
+.ws-status-dot.online{
+  background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:pulseDot 1.8s infinite;
+}
+.ws-status-dot.error{
+  background:var(--danger);
+  box-shadow:0 0 8px var(--danger);
 }
 
 .mic-row{display:flex;align-items:center;gap:.8rem;}
@@ -418,6 +438,7 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
 .log-line.warn .lvl{color:#FBBF24;}
 .log-line.err  .lvl{color:#F87171;}
 .log-line.tx   .lvl{color:#A78BFA;}
+.log-line.ws   .lvl{color:#F472B6;}
 
 .docs{margin-top:1.75rem;background:var(--bg-glass);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
 .tabs-head{display:flex;gap:.15rem;padding:.55rem .55rem 0;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
@@ -448,9 +469,6 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
 .pipe h5{font-size:.82rem;margin:.2rem 0;font-weight:700;}
 .pipe p{font-size:.74rem;color:var(--text-3);line-height:1.5;}
 
-/* ============================================================
-   RODAPÉ PROFISSIONAL
-   ============================================================ */
 .foot{
   margin-top:3rem;
   background:var(--bg-glass);
@@ -618,7 +636,6 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
   animation:pulseDot 1.8s infinite;
 }
 
-/* ============ BOTÃO VOLTAR AO TOPO ============ */
 .back-to-top{
   position:fixed;
   bottom:1.75rem;
@@ -684,6 +701,8 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
   .foot-grid{grid-template-columns:1fr;gap:1.25rem;}
   .foot-bottom{flex-direction:column;align-items:flex-start;}
   .back-to-top{width:42px;height:42px;bottom:1.25rem;right:1.25rem;}
+  .connect-row{flex-direction:column;}
+  #btnConnect{width:100%;}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
@@ -693,7 +712,6 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
 </head>
 <body>
 
-<!-- FUNDO ANIMADO MINIMALISTA -->
 <canvas id="bgCanvas" aria-hidden="true"></canvas>
 
 <div class="page">
@@ -707,7 +725,7 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
         </svg>
       </div>
       <div class="brand-text">
-        <span class="brand-tag">SIM · v5.0 · IFNMG</span>
+        <span class="brand-tag">SIM · v5.1 · IFNMG</span>
         <span class="brand-title">Mão Robótica Arduino<span class="dot">.</span>ino</span>
       </div>
     </div>
@@ -925,6 +943,30 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
     <aside class="panel" aria-label="Painel de controle">
       <div class="card">
         <div class="card-head">
+          <span class="card-title">
+            Conexão com a Mão Física
+            <span class="badge" id="wsStatus"><span class="ws-status-dot" id="wsDot"></span>desconectada</span>
+          </span>
+        </div>
+        <div class="connect-row">
+          <input type="text" id="wsIP" class="connect-input" placeholder="192.168.0.100" />
+          <button class="btn btn-primary" id="btnConnect" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+            <span id="btnConnectText">Conectar</span>
+          </button>
+        </div>
+        <p class="connect-hint">
+          💡 Digite o IP mostrado no Monitor Serial do ESP32 (ex.: <strong>192.168.0.105</strong>)
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
           <span class="card-title">PWM · Controle <span class="badge">0–180°</span></span>
         </div>
         <div class="pwm-display">
@@ -1106,7 +1148,7 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
           <span class="tech-chip">⚡ ES6+</span>
           <span class="tech-chip">🔊 Web Speech API</span>
           <span class="tech-chip">📊 Canvas 2D</span>
-          <span class="tech-chip">🎵 Web Audio</span>
+          <span class="tech-chip">🌐 WebSocket</span>
         </div>
       </div>
     </div>
@@ -1117,13 +1159,12 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
       </div>
       <div class="right">
         <span class="status-online">SISTEMA OPERACIONAL</span>
-        <span>v5.0</span>
+        <span>v5.1</span>
       </div>
     </div>
   </footer>
 </div>
 
-<!-- BOTÃO VOLTAR AO TOPO -->
 <button class="back-to-top" id="backToTop" aria-label="Voltar ao topo">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 19V5M5 12l7-7 7 7"/>
@@ -1142,7 +1183,7 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
   const fmtTime = () => new Date().toTimeString().slice(0, 8);
 
   /* ============================================================
-     FUNDO ANIMADO — ORBES FLUTUANTES MINIMALISTAS
+     FUNDO ANIMADO
      ============================================================ */
   (function initBackground() {
     const canvas = $('bgCanvas');
@@ -1160,20 +1201,8 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
 
     function palettes() {
       return currentTheme() === 'dark'
-        ? [
-            [255, 154, 46],
-            [74, 159, 212],
-            [44, 123, 176],
-            [255, 176, 87],
-            [167, 139, 250]
-          ]
-        : [
-            [255, 205, 140],
-            [190, 220, 255],
-            [200, 245, 220],
-            [255, 235, 195],
-            [230, 220, 255]
-          ];
+        ? [[255,154,46],[74,159,212],[44,123,176],[255,176,87],[167,139,250]]
+        : [[255,205,140],[190,220,255],[200,245,220],[255,235,195],[230,220,255]];
     }
 
     class Orb {
@@ -1263,8 +1292,6 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
       rt = setTimeout(() => { resize(); init(); }, 250);
     });
 
-    new MutationObserver(() => {}).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-
     resize(); init(); requestAnimationFrame(animate);
   })();
 
@@ -1306,7 +1333,7 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
   function log(level, msg) {
     const line = document.createElement('div');
     line.className = 'log-line ' + level;
-    const lvlMap = { info: 'INFO', ok: 'OK', warn: 'WARN', err: 'ERROR', tx: 'TX' };
+    const lvlMap = { info: 'INFO', ok: 'OK', warn: 'WARN', err: 'ERROR', tx: 'TX', ws: 'WS' };
     line.innerHTML = `<span class="ts">[${fmtTime()}]</span><span class="lvl">${lvlMap[level]||'INFO'}</span><span class="msg"></span>`;
     line.querySelector('.msg').textContent = msg;
     consoleBody.appendChild(line);
@@ -1355,7 +1382,155 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
     log('info', `Áudio ${soundEnabled ? 'ativado' : 'desativado'}`);
   });
 
-  /* =============== MOTOR DE ARTICULAÇÃO =============== */
+  /* ============================================================
+     CONEXÃO WEBSOCKET COM A MÃO FÍSICA (ESP32)
+     ============================================================ */
+  let ws = null;
+  let wsConnected = false;
+  let suppressEcho = false;
+  let lastSentAngle = -1;
+  let sendThrottle = null;
+  let reconnectAttempts = 0;
+  let lastConnectedIP = '';
+
+  function updateWsUI(state, msg) {
+    const btn = $('btnConnect');
+    const btnText = $('btnConnectText');
+    const status = $('wsStatus');
+    const dot = $('wsDot');
+    if (!btn || !status || !dot) return;
+
+    if (state === 'connected') {
+      btn.classList.add('active');
+      btnText.textContent = 'Desconectar';
+      status.innerHTML = '<span class="ws-status-dot online"></span>conectada';
+    } else if (state === 'connecting') {
+      btn.classList.remove('active');
+      btnText.textContent = 'Conectando...';
+      status.innerHTML = '<span class="ws-status-dot"></span>conectando...';
+    } else if (state === 'error') {
+      btn.classList.remove('active');
+      btnText.textContent = 'Conectar';
+      status.innerHTML = '<span class="ws-status-dot error"></span>erro';
+    } else {
+      btn.classList.remove('active');
+      btnText.textContent = 'Conectar';
+      status.innerHTML = '<span class="ws-status-dot"></span>' + (msg || 'desconectada');
+    }
+  }
+
+  function connectToHand(ip) {
+    if (ws) { try { ws.close(); } catch(e){} ws = null; }
+    lastConnectedIP = ip;
+    const url = `ws://${ip}:81`;
+    log('ws', `Conectando a ${url}...`);
+    updateWsUI('connecting');
+
+    try {
+      ws = new WebSocket(url);
+    } catch (e) {
+      log('err', `URL inválida: ${e.message}`);
+      updateWsUI('error');
+      return;
+    }
+
+    const connectTimeout = setTimeout(() => {
+      if (ws && ws.readyState !== WebSocket.OPEN) {
+        log('err', 'Timeout de conexão — verifique o IP e o WiFi');
+        try { ws.close(); } catch(e){}
+        updateWsUI('error');
+      }
+    }, 6000);
+
+    ws.onopen = () => {
+      clearTimeout(connectTimeout);
+      wsConnected = true;
+      reconnectAttempts = 0;
+      updateWsUI('connected');
+      log('ok', `✅ Conectado à mão física em ${ip}`);
+      toast('Mão física conectada! 🦾', 'ok');
+      // Envia estado atual imediatamente
+      setTimeout(() => {
+        sendToHand(`ANGLE:${state.angle}`);
+      }, 300);
+    };
+
+    ws.onmessage = (event) => {
+      const msg = String(event.data);
+      if (msg.startsWith('STATE:')) {
+        const ang = parseInt(msg.substring(6), 10);
+        if (!isNaN(ang)) {
+          suppressEcho = true;
+          setAngle(ang, 'manual', true);
+          suppressEcho = false;
+          log('ws', `← ESP32 reportou: ${ang}°`);
+        }
+      } else if (msg === 'PONG') {
+        log('ws', 'Pong recebido');
+      } else if (msg === 'READY') {
+        log('ws', 'ESP32 pronto');
+      } else {
+        log('ws', `← ${msg}`);
+      }
+    };
+
+    ws.onerror = () => {
+      clearTimeout(connectTimeout);
+      log('err', 'Erro no WebSocket — verifique o IP e se está na mesma rede');
+      updateWsUI('error');
+    };
+
+    ws.onclose = () => {
+      clearTimeout(connectTimeout);
+      const wasConnected = wsConnected;
+      wsConnected = false;
+      updateWsUI('disconnected');
+      if (wasConnected) log('warn', 'Conexão com a mão física encerrada');
+    };
+  }
+
+  function disconnectHand() {
+    if (ws) { try { ws.close(); } catch(e){} ws = null; }
+    wsConnected = false;
+    reconnectAttempts = 0;
+    updateWsUI('disconnected');
+    log('info', 'Desconectado da mão física');
+  }
+
+  function sendToHand(cmd) {
+    if (!wsConnected || !ws || ws.readyState !== WebSocket.OPEN) return;
+    try {
+      ws.send(cmd);
+      log('tx', `→ ${cmd}`);
+    } catch (e) {
+      log('err', `Falha ao enviar: ${e.message}`);
+    }
+  }
+
+  $('btnConnect')?.addEventListener('click', () => {
+    if (wsConnected) {
+      disconnectHand();
+    } else {
+      const ip = $('wsIP').value.trim();
+      if (!ip) { toast('Digite o IP do ESP32', 'err'); return; }
+      if (!/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) {
+        toast('IP inválido. Ex.: 192.168.0.105', 'err');
+        return;
+      }
+      connectToHand(ip);
+    }
+  });
+
+  // Salva e restaura último IP
+  const savedIP = localStorage.getItem('hand_ip');
+  if (savedIP && $('wsIP')) $('wsIP').value = savedIP;
+  $('wsIP')?.addEventListener('input', (e) => {
+    localStorage.setItem('hand_ip', e.target.value.trim());
+  });
+
+  // ============================================================
+  // MOTOR DE ARTICULAÇÃO
+  // ============================================================
   const ANG = { proximal: 22, middle: 88, distal: 62, thumbZ: 48, thumbPhal: 40 };
 
   const fingers = {
@@ -1458,6 +1633,19 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
       else if (source === 'slider')log('tx', `PWM ajustado → ${newA}°`);
       else if (source === 'voice') log('tx', `VOZ → ${newA}°`);
       else if (source === 'drag')  log('tx', `ARRASTAR → PWM ${newA}°`);
+    }
+
+    // ========================================================
+    // ENVIA PARA A MÃO FÍSICA (se conectada)
+    // ========================================================
+    if (!silent && wsConnected && !suppressEcho && newA !== lastSentAngle) {
+      lastSentAngle = newA;
+      clearTimeout(sendThrottle);
+      sendThrottle = setTimeout(() => {
+        if (newA === 0)        sendToHand('OPEN');
+        else if (newA === 180) sendToHand('CLOSE');
+        else                   sendToHand(`ANGLE:${newA}`);
+      }, 80);
     }
   }
   function countCycle() { state.cycles++; telCycles.textContent = state.cycles; }
@@ -1746,15 +1934,16 @@ input[type="range"].pwm-slider::-moz-range-thumb{width:24px;height:24px;border-r
   }, 2000);
 
   function bootstrap() {
-    log('info', 'Simulador v5.0 inicializado · 15 falanges');
+    log('info', 'Simulador v5.1 inicializado · 15 falanges');
     setTimeout(() => log('ok', 'Arduino conectado · /dev/ttyUSB0 @ 9600'), 350);
     setTimeout(() => log('ok', 'Servo SG90 calibrado · 0°–180°'), 700);
     setTimeout(() => { setAngle(0, 'open', true); log('info', 'Mão em repouso (0°)'); }, 1100);
-    setTimeout(() => toast('Simulador pronto · arraste a mão ou use o slider', 'ok'), 1500);
+    setTimeout(() => log('ws', 'Aguardando conexão com a mão física...'), 1400);
+    setTimeout(() => toast('Simulador pronto · conecte a mão física 🦾', 'ok'), 1500);
   }
   bootstrap();
 
-  console.log('%c🦾 Simulador v5.0 · dark mode preto alinhado', 'color:#FF9A2E;font-weight:bold;font-size:12px;');
+  console.log('%c🦾 Simulador v5.1 · WebSocket ready', 'color:#FF9A2E;font-weight:bold;font-size:12px;');
 })();
 </script>
 </body>
