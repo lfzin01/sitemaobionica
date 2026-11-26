@@ -5,11 +5,72 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TCC | Mão Robótica Controlada por Arduino</title>
 
+  <!-- ✅ Aplica o tamanho de fonte salvo ANTES da renderização (evita flash) -->
+  <script>
+    (function() {
+      var sizes = [14, 16, 18, 20, 22];
+      var saved = localStorage.getItem('tcc_font_size_index');
+      var idx = saved !== null ? parseInt(saved, 10) : 1;
+      if (isNaN(idx) || idx < 0 || idx >= sizes.length) idx = 1;
+      document.documentElement.style.fontSize = sizes[idx] + 'px';
+      document.documentElement.setAttribute('data-font-size', idx);
+    })();
+  </script>
+  <!-- ✅ Controle de fonte (bind dos botões) -->
+  <script src="fontsize.js" defer></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- ✅ AJUSTE: 5 cards da equipe lado a lado -->
+  <style>
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.2rem;
+      justify-items: stretch;
+      align-items: stretch;
+    }
+
+    .team-grid .team-card {
+      width: 100%;
+      padding: 1.5rem 1rem;
+    }
+
+    .team-grid .team-card h3 {
+      font-size: 1.1rem;
+    }
+
+    .team-grid .team-card .team-desc {
+      font-size: 0.85rem;
+    }
+
+    .team-grid .team-card .skill-chip {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.6rem;
+    }
+
+    @media (max-width: 1300px) {
+      .team-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .team-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
   
@@ -74,6 +135,14 @@
       </a>
 
       <div class="nav-right">
+        <!-- ✅ NOVO: Controle de tamanho de fonte -->
+        <div class="font-size-controls" role="group" aria-label="Controle de tamanho da fonte">
+          <button type="button" class="font-size-btn" data-font-decrease
+                  title="Diminuir fonte" aria-label="Diminuir tamanho da fonte">A−</button>
+          <button type="button" class="font-size-btn" data-font-increase
+                  title="Aumentar fonte" aria-label="Aumentar tamanho da fonte">A+</button>
+        </div>
+
         <button id="themeToggleBtn" class="theme-toggle" title="Alternar tema" aria-label="Alternar tema">
           <svg class="theme-icon sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="4"/>
@@ -181,8 +250,7 @@
         </div>
       </div>
     </section>
-
-    <!-- ANATOMIA -->
+ <!-- ANATOMIA -->
     <section id="visao-laboratorio" class="section-block">
       <div class="container">
         <div class="section-header">
@@ -218,7 +286,7 @@
             <span class="anatomy-tag tag-eletronica">ELETRÔNICA</span>
             <h3>Alimentação Externa</h3>
             <p>Os servos são alimentados por fonte externa de 5V/2A, evitando sobrecarga da porta USB do Arduino.</p>
-            <div class="anatomy-specs"><span><strong>Fonte:</strong> 5V / 2A</span><span><strong>Driver:</strong> Buck LM2596</span></div>
+            <div class="anatomy-specs"><span><strong>Fonte:</strong> 12V / 2A</span><span><strong>Driver:</strong> Buck LM2596</span></div>
           </div>
           <div class="anatomy-card" data-part="comunicacao">
             <div class="anatomy-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg></div>
@@ -238,7 +306,60 @@
       </div>
     </section>
 
-    <!-- GALERIA -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     <!-- ============================================================ -->
+    <!-- GALERIA DE FOTOS (COM IMAGENS DE COMPONENTES)                -->
+    <!-- ============================================================ -->
+    <style>
+      .gallery-grid.masonry {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.2rem;
+      }
+      .gallery-item {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        background: var(--bg-alt);
+      }
+      .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+        transition: transform 0.4s ease;
+      }
+      .gallery-item:hover img { transform: scale(1.08); }
+      
+      .gallery-item.extra-item { display: none; }
+      .gallery-grid.expanded .gallery-item.extra-item {
+        display: block;
+        animation: fadeInGallery 0.4s ease forwards;
+      }
+      @keyframes fadeInGallery {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+
     <section id="galeria" class="section-block bg-glass">
       <div class="container">
         <div class="section-header">
@@ -255,47 +376,126 @@
           <button class="filter-btn" data-filter="montagem">Montagem</button>
         </div>
 
-        <div class="gallery-grid masonry">
-          <div class="gallery-item" data-category="estrutura" onclick="window.openLightbox('https://images.unsplash.com/photo-1615821086331-834e5c7d1d6d?auto=format&fit=crop&w=1200&q=80', 'Impressão 3D e Estrutura Mecânica - Falanges')">
-            <img src="https://images.unsplash.com/photo-1615821086331-834e5c7d1d6d?auto=format&fit=crop&w=600&q=80" alt="Estrutura 3D" />
-            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Impressão 3D dos Falanges</h4></div>
+        <div class="gallery-grid masonry" id="galleryGrid">
+          
+          <!-- ================= IMAGENS VISÍVEIS INICIALMENTE ================= -->
+
+          <!-- 1. Sua foto: Circuito e fios -->
+          
+
+          <!-- 2. Imagem de Componente: ESP32 / Arduino -->
+          <div class="gallery-item" data-category="eletronica" onclick="window.openLightbox('https://images.unsplash.com/photo-1553406830-ef2513450d76?auto=format&fit=crop&w=1200&q=80', 'Placa de Controle ESP32 / Arduino')">
+            <img src="https://images.unsplash.com/photo-1553406830-ef2513450d76?auto=format&fit=crop&w=600&q=80" alt="ESP32" />
+            <div class="gallery-overlay"><span class="gallery-tag">ELETRÔNICA</span><h4>Microcontrolador ESP32</h4></div>
           </div>
-          <div class="gallery-item" data-category="eletronica" onclick="window.openLightbox('https://images.unsplash.com/photo-1553406830-ef2513450d76?auto=format&fit=crop&w=1200&q=80', 'Placa de Controle Arduino e Fiação')">
-            <img src="https://images.unsplash.com/photo-1553406830-ef2513450d76?auto=format&fit=crop&w=600&q=80" alt="Circuito Arduino" />
-            <div class="gallery-overlay"><span class="gallery-tag">ELETRÔNICA</span><h4>Módulo Arduino & Servos</h4></div>
+
+          <!-- 3. Sua foto: Pimentão lateral -->
+          <div class="gallery-item" data-category="teste" onclick="window.openLightbox('imagen mao/image (2).jpg', 'Teste de Preensão Lateral')">
+            <img src="imagen mao/image (2).jpg" alt="Teste Lateral" />
+            <div class="gallery-overlay"><span class="gallery-tag">TESTE</span><h4>Preensão Lateral</h4></div>
           </div>
-          <div class="gallery-item" data-category="teste" onclick="window.openLightbox('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80', 'Protótipo Completo em Teste de Bancada')">
-            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80" alt="Teste de Bancada" />
+
+          <!-- 4. Imagem de Componente: Servo Motor -->
+          <div class="gallery-item" data-category="eletronica" onclick="window.openLightbox('https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&w=1200&q=80', 'Servo Motor SG90 e Fios')">
+            <img src="https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&w=600&q=80" alt="Servo Motor" />
+            <div class="gallery-overlay"><span class="gallery-tag">ELETRÔNICA</span><h4>Servomotores e Fiação</h4></div>
+          </div>
+
+          <!-- 5. Sua foto: Base com encaixes -->
+          <div class="gallery-item" data-category="estrutura" onclick="window.openLightbox('imagen mao/image (2).png', 'Base e Encaixes')">
+            <img src="imagen mao/image (2).png" alt="Base 3D" />
+            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Base e Encaixes</h4></div>
+          </div>
+
+          <!-- 6. Sua foto: Pimentão frontal -->
+          <div class="gallery-item" data-category="teste" onclick="window.openLightbox('imagen mao/image (3).jpg', 'Teste de Preensão Frontal')">
+            <img src="imagen mao/image (3).jpg" alt="Teste Frontal" />
             <div class="gallery-overlay"><span class="gallery-tag">TESTE</span><h4>Ensaio de Preensão</h4></div>
           </div>
-          <div class="gallery-item" data-category="montagem" onclick="window.openLightbox('https://images.unsplash.com/photo-1581092335397-9583eb92d232?auto=format&fit=crop&w=1200&q=80', 'Montagem dos Servomotores na Palma')">
-            <img src="https://images.unsplash.com/photo-1581092335397-9583eb92d232?auto=format&fit=crop&w=600&q=80" alt="Montagem dos Servos" />
-            <div class="gallery-overlay"><span class="gallery-tag">MONTAGEM</span><h4>Instalação dos Servos</h4></div>
+
+          <!-- ================= IMAGENS ESCONDIDAS (extra-item) ================= -->
+
+          <!-- 7. Imagem de Componente: Impressão 3D -->
+         
+
+          <!-- 8. Sua foto: Peças de fixação -->
+          <div class="gallery-item extra-item" data-category="estrutura" onclick="window.openLightbox('imagen mao/image (3).png', 'Peças de Fixação')">
+            <img src="imagen mao/image (3).png" alt="Fixação" />
+            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Peças de Fixação 3D</h4></div>
           </div>
-          <div class="gallery-item" data-category="estrutura" onclick="window.openLightbox('https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=1200&q=80', 'Detalhe da Articulação dos Dedos')">
-            <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=600&q=80" alt="Articulação" />
-            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Detalhe da Articulação</h4></div>
+
+          <!-- 9. Sua foto: Palma 3D -->
+          <div class="gallery-item extra-item" data-category="estrutura" onclick="window.openLightbox('imagen mao/image (4).png', 'Estrutura da Palma')">
+            <img src="imagen mao/image (4).png" alt="Palma 3D" />
+            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Estrutura da Palma</h4></div>
           </div>
-          <div class="gallery-item" data-category="eletronica" onclick="window.openLightbox('https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&w=1200&q=80', 'Fiação e Conexões Elétricas')">
-            <img src="https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&w=600&q=80" alt="Fiação" />
-            <div class="gallery-overlay"><span class="gallery-tag">ELETRÔNICA</span><h4>Fiação e Conexões</h4></div>
+
+          <!-- 10. Sua foto: Carcaça -->
+          <div class="gallery-item extra-item" data-category="estrutura" onclick="window.openLightbox('imagen mao/image (5).png', 'Carcaça Traseira')">
+            <img src="imagen mao/image (5).png" alt="Carcaça" />
+            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Carcaça Traseira 3D</h4></div>
           </div>
-          <div class="gallery-item" data-category="teste" onclick="window.openLightbox('https://images.unsplash.com/photo-1581093458791-9f302e6d4a4e?auto=format&fit=crop&w=1200&q=80', 'Teste de Resposta dos Servomotores')">
-            <img src="https://images.unsplash.com/photo-1581093458791-9f302e6d4a4e?auto=format&fit=crop&w=600&q=80" alt="Teste de Servo" />
-            <div class="gallery-overlay"><span class="gallery-tag">TESTE</span><h4>Teste de Resposta</h4></div>
+
+          <!-- 11. Sua foto: Mão aberta (Montagem) -->
+          <div class="gallery-item extra-item" data-category="montagem" onclick="window.openLightbox('imagen mao/image.jpg', 'Estrutura Impressa e Fiação')">
+            <img src="imagen mao/image.jpg" alt="Montagem" />
+            <div class="gallery-overlay"><span class="gallery-tag">MONTAGEM</span><h4>Montagem e Fiação</h4></div>
           </div>
-          <div class="gallery-item" data-category="montagem" onclick="window.openLightbox('https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1200&q=80', 'Montagem Final da Mão Robótica')">
-            <img src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=600&q=80" alt="Montagem Final" />
-            <div class="gallery-overlay"><span class="gallery-tag">MONTAGEM</span><h4>Montagem Final</h4></div>
+
+          <!-- 12. Sua foto: Base Cilíndrica -->
+          <div class="gallery-item extra-item" data-category="estrutura" onclick="window.openLightbox('imagen mao/image.png', 'Base Cilíndrica 3D')">
+            <img src="imagen mao/image.png" alt="Base Cilíndrica" />
+            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Base Cilíndrica</h4></div>
           </div>
-          <div class="gallery-item" data-category="estrutura" onclick="window.openLightbox('https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1200&q=80', 'Vista Explodida da Estrutura')">
-            <img src="https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=600&q=80" alt="Vista Explodida" />
-            <div class="gallery-overlay"><span class="gallery-tag">ESTRUTURA</span><h4>Vista Explodida</h4></div>
-          </div>
+
         </div>
+
+        <!-- BOTÃO PARA EXPANDIR A GALERIA -->
+        <div style="text-align: center; margin-top: 2rem;">
+          <button id="btnToggleGallery" class="btn btn-outline" onclick="toggleGalleryView()">
+            Ver Todas as Imagens
+          </button>
+        </div>
+
       </div>
     </section>
 
+    <!-- SCRIPT DO BOTÃO -->
+    <script>
+      function toggleGalleryView() {
+        const grid = document.getElementById('galleryGrid');
+        const btn = document.getElementById('btnToggleGallery');
+        
+        grid.classList.toggle('expanded');
+        
+        if (grid.classList.contains('expanded')) {
+          btn.innerText = 'Ver Menos Imagens';
+        } else {
+          btn.innerText = 'Ver Todas as Imagens';
+          document.getElementById('galeria').scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+
+    
+
+      </div>
+    </section>
     <!-- EQUIPE -->
     <section id="equipe" class="section-block">
       <div class="container">
@@ -328,10 +528,10 @@
             <h3>Luiz H</h3>
             <p class="team-role">Pesquisa e Validação</p>
             <p class="team-desc">Realizou testes de usabilidade e documentação do projeto.</p>
-         <div class="team-skills"><span class="skill-chip">📊 Testes</span><span class="skill-chip">📄 Documentação</span></div>
+            <div class="team-skills"><span class="skill-chip">📊 Testes</span><span class="skill-chip">📄 Documentação</span></div>
           </div>
 
-                    <!-- Milton José -->
+          <!-- Milton José -->
           <div class="team-card" data-tilt>
             <div class="team-avatar-ring">
               <div class="team-avatar">
@@ -354,7 +554,20 @@
             <h3>Luiz F</h3>
             <p class="team-role">Engenharia de Controle</p>
             <p class="team-desc">Desenvolveu o código de acionamento dos servomotores e a lógica binária.</p>
-                     <div class="team-skills"><span class="skill-chip">⚙️ Arduino</span><span class="skill-chip">💻 C++</span></div>
+            <div class="team-skills"><span class="skill-chip">⚙️ Arduino</span><span class="skill-chip">💻 C++</span></div>
+          </div>
+
+          <!-- Pedro Arthur -->
+          <div class="team-card" data-tilt>
+            <div class="team-avatar-ring">
+              <div class="team-avatar">
+                <img src="pedro.jpeg" alt="Foto de Pedro Arthur" style="width:100%; height:100%; object-fit:cover; border-radius:inherit; display:block;" />
+              </div>
+            </div>
+            <h3>Pedro Arthur</h3>
+            <p class="team-role">Desenvolvimento de Software</p>
+            <p class="team-desc">Desenvolveu o simulador web e a integração do reconhecimento de voz.</p>
+            <div class="team-skills"><span class="skill-chip">🌐 Web</span><span class="skill-chip">🎤 Web Speech API</span></div>
           </div>
         </div>
       </div>
@@ -586,5 +799,42 @@
   </footer>
 
   <script type="module" src="app.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <!-- Script para o botão de Ver Mais/Ver Menos da Galeria -->
+  <script>
+    function toggleGalleryView() {
+      const grid = document.getElementById('galleryGrid');
+      const btn = document.getElementById('btnToggleGallery');
+      
+      grid.classList.toggle('expanded');
+      
+      if (grid.classList.contains('expanded')) {
+        btn.innerText = 'Ver Menos Imagens';
+      } else {
+        btn.innerText = 'Ver Todas as Imagens';
+        // Rola a tela de volta para o topo da galeria ao fechar
+        document.getElementById('galeria').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  </script>
 </body>
 </html>

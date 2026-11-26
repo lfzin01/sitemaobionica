@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Meu Perfil | Mão Robótica Arduino</title>
 
+  <!-- ✅ Aplica o tamanho de fonte salvo ANTES da renderização (evita flash) -->
+  <script>
+    (function() {
+      var sizes = [14, 16, 18, 20, 22];
+      var saved = localStorage.getItem('tcc_font_size_index');
+      var idx = saved !== null ? parseInt(saved, 10) : 1;
+      if (isNaN(idx) || idx < 0 || idx >= sizes.length) idx = 1;
+      document.documentElement.style.fontSize = sizes[idx] + 'px';
+      document.documentElement.setAttribute('data-font-size', idx);
+    })();
+  </script>
+  <!-- ✅ Controle de fonte (bind dos botões) -->
+  <script src="fontsize.js" defer></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -272,6 +286,21 @@
                 <input type="checkbox" id="prefTheme" />
                 <span class="slider-switch"></span>
               </label>
+            </div>
+
+            <!-- ✅ NOVO: Controle de tamanho da fonte -->
+            <div class="preference-item">
+              <div class="preference-info">
+                <div class="preference-title">🔤 Tamanho da fonte</div>
+                <div class="preference-desc">Ajuste o tamanho do texto em todas as páginas do site</div>
+              </div>
+              <div class="font-size-stepper" role="group" aria-label="Controle de tamanho da fonte">
+                <button type="button" class="font-size-step-btn" data-font-decrease
+                        aria-label="Diminuir fonte" title="Diminuir fonte">A−</button>
+                <span class="font-size-step-value" data-font-size-label>16px</span>
+                <button type="button" class="font-size-step-btn" data-font-increase
+                        aria-label="Aumentar fonte" title="Aumentar fonte">A+</button>
+              </div>
             </div>
 
             <div class="preference-item">
